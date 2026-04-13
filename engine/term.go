@@ -3,6 +3,7 @@ package engine
 import (
 	"fmt"
 	"io"
+	"maps"
 	"strings"
 )
 
@@ -34,9 +35,7 @@ func (o WriteOptions) withQuoted(quoted bool) *WriteOptions {
 
 func (o WriteOptions) withVisited(t Term) *WriteOptions {
 	visited := make(map[termID]struct{}, len(o.visited))
-	for k, v := range o.visited {
-		visited[k] = v
-	}
+	maps.Copy(visited, o.visited)
 	visited[id(t)] = struct{}{}
 	o.visited = visited
 	return &o
@@ -93,7 +92,7 @@ type termIDer interface {
 }
 
 // termID is an identifier for a Term.
-type termID interface{}
+type termID any
 
 // id returns a termID for the Term.
 func id(t Term) termID {

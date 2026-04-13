@@ -64,7 +64,7 @@ func TestListIterator_Next(t *testing.T) {
 			l := NewVariable()
 			const max = 500
 			elems := make([]Term, 0, max)
-			for i := 0; i < max; i++ {
+			for range max {
 				elems = append(elems, NewAtom("a"))
 				env := NewEnv().bind(l, PartialList(l, elems...))
 				iter := ListIterator{List: l, Env: env}

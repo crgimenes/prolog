@@ -50,16 +50,16 @@ func (s *Solutions) Next() bool {
 }
 
 // Scan copies the variable values of the current solution into the specified struct/map.
-func (s *Solutions) Scan(dest interface{}) error {
+func (s *Solutions) Scan(dest any) error {
 	o := reflect.ValueOf(dest)
-	for o.Kind() == reflect.Ptr {
+	for o.Kind() == reflect.Pointer {
 		o = o.Elem()
 	}
 	switch o.Kind() {
 	case reflect.Struct:
 		t := o.Type()
 
-		fields := make(map[string]interface{}, t.NumField())
+		fields := make(map[string]any, t.NumField())
 		for i := 0; i < t.NumField(); i++ {
 			f := t.Field(i)
 			name := f.Name
@@ -83,7 +83,7 @@ func (s *Solutions) Scan(dest interface{}) error {
 		return nil
 	case reflect.Map:
 		t := o.Type()
-		if t.Key() != reflect.TypeOf("") {
+		if t.Key() != reflect.TypeFor[string]() {
 			return errors.New("map key is not string")
 		}
 
@@ -102,9 +102,9 @@ func (s *Solutions) Scan(dest interface{}) error {
 
 var atomEmptyList = engine.NewAtom("[]")
 
-func convertAssign(dest interface{}, vm *engine.VM, t engine.Term, env *engine.Env) error {
+func convertAssign(dest any, vm *engine.VM, t engine.Term, env *engine.Env) error {
 	switch d := dest.(type) {
-	case *interface{}:
+	case *any:
 		return convertAssignAny(d, vm, t, env)
 	case *string:
 		return convertAssignString(d, t, env)
@@ -129,14 +129,14 @@ func convertAssign(dest interface{}, vm *engine.VM, t engine.Term, env *engine.E
 	}
 }
 
-func convertAssignAny(d *interface{}, vm *engine.VM, t engine.Term, env *engine.Env) error {
+func convertAssignAny(d *any, vm *engine.VM, t engine.Term, env *engine.Env) error {
 	switch t := env.Resolve(t).(type) {
 	case engine.Variable:
 		*d = nil
 		return nil
 	case engine.Atom:
 		if t == atomEmptyList {
-			*d = []interface{}{}
+			*d = []any{}
 		} else {
 			*d = t.String()
 		}
@@ -148,7 +148,7 @@ func convertAssignAny(d *interface{}, vm *engine.VM, t engine.Term, env *engine.
 		*d = float64(t)
 		return nil
 	case engine.Compound:
-		var s []interface{}
+		var s []any
 		iter := engine.ListIterator{List: t, Env: env}
 		for iter.Next() {
 			s = append(s, nil)
@@ -246,7 +246,7 @@ func convertAssignFloat64(d *float64, t engine.Term, env *engine.Env) error {
 	}
 }
 
-func convertAssignSlice(d interface{}, vm *engine.VM, t engine.Term, env *engine.Env) error {
+func convertAssignSlice(d any, vm *engine.VM, t engine.Term, env *engine.Env) error {
 	v := reflect.ValueOf(d).Elem()
 
 	if k := v.Kind(); k != reflect.Slice {
@@ -285,7 +285,7 @@ type Solution struct {
 }
 
 // Scan copies the variable values of the solution into the specified struct/map.
-func (s *Solution) Scan(dest interface{}) error {
+func (s *Solution) Scan(dest any) error {
 	if err := s.err; err != nil {
 		return err
 	}

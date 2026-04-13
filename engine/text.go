@@ -17,7 +17,7 @@ func (e *discontiguousError) Error() string {
 }
 
 // Compile compiles the Prolog text and updates the DB accordingly.
-func (vm *VM) Compile(ctx context.Context, s string, args ...interface{}) error {
+func (vm *VM) Compile(ctx context.Context, s string, args ...any) error {
 	var t text
 	if err := vm.compile(ctx, &t, s, args...); err != nil {
 		return err
@@ -77,7 +77,7 @@ func Consult(vm *VM, files Term, k Cont, env *Env) *Promise {
 	})
 }
 
-func (vm *VM) compile(ctx context.Context, text *text, s string, args ...interface{}) error {
+func (vm *VM) compile(ctx context.Context, text *text, s string, args ...any) error {
 	if text.clauses == nil {
 		text.clauses = map[procedureIndicator]*userDefined{}
 	}

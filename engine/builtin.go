@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"slices"
 	"sort"
 	"strings"
 	"unicode"
@@ -235,10 +236,8 @@ func AcyclicTerm(_ *VM, t Term, k Cont, env *Env) *Promise {
 func cyclicTerm(t Term, visited []Term, env *Env) bool {
 	t = env.Resolve(t)
 
-	for _, v := range visited {
-		if t == v {
-			return true
-		}
+	if slices.Contains(visited, t) {
+		return true
 	}
 	visited = append(visited, t)
 
@@ -604,10 +603,8 @@ func validateOp(vm *VM, p Integer, spec operatorSpecifier, name Atom, env *Env) 
 }
 
 func appendUniqNewAtom(slice []Atom, elem Atom) []Atom {
-	for _, e := range slice {
-		if e == elem {
-			return slice
-		}
+	if slices.Contains(slice, elem) {
+		return slice
 	}
 	return append(slice, elem)
 }
@@ -655,7 +652,6 @@ func CurrentOp(vm *VM, priority, specifier, op Term, k Cont, env *Env) *Promise 
 	ks := make([]func(context.Context) *Promise, 0, len(vm.operators)*int(_operatorClassLen))
 	for _, ops := range vm.operators {
 		for _, op := range ops {
-			op := op
 			if op == (operator{}) {
 				continue
 			}
@@ -1104,7 +1100,6 @@ func Retract(vm *VM, t Term, k Cont, env *Env) *Promise {
 	deleted := 0
 	ks := make([]func(context.Context) *Promise, len(u.clauses))
 	for i, c := range u.clauses {
-		i := i
 		raw := rulify(c.raw, env)
 		ks[i] = func(_ context.Context) *Promise {
 			return Unify(vm, t, raw, func(env *Env) *Promise {
@@ -2440,9 +2435,7 @@ func StreamProperty(vm *VM, stream, property Term, k Cont, env *Env) *Promise {
 
 	var ks []func(context.Context) *Promise
 	for _, s := range streams {
-		s := s
 		for _, p := range s.properties() {
-			p := p
 			ks = append(ks, func(context.Context) *Promise {
 				return Unify(vm, atomEmpty.Apply(stream, property), atomEmpty.Apply(s, p), k, env)
 			})
@@ -2589,7 +2582,7 @@ func CurrentCharConversion(vm *VM, inChar, outChar Term, k Cont, env *Env) *Prom
 
 	pattern := tuple(inChar, outChar)
 	ks := make([]func(context.Context) *Promise, 256)
-	for i := 0; i < 256; i++ {
+	for i := range 256 {
 		r := rune(i)
 		cr, ok := vm.charConversions[r]
 		if !ok {

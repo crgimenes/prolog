@@ -1,5 +1,7 @@
 package engine
 
+import "slices"
+
 var varContext = NewVariable()
 
 var rootContext = NewAtom("root")
@@ -172,10 +174,8 @@ func (e *Env) Resolve(t Term) Term {
 	for t != nil {
 		switch v := t.(type) {
 		case Variable:
-			for _, s := range stop {
-				if v == s {
-					return v
-				}
+			if slices.Contains(stop, v) {
+				return v
 			}
 			ref, ok := e.lookup(v)
 			if !ok {
@@ -245,10 +245,8 @@ func (e *Env) freeVariables(t Term) []Variable {
 func (e *Env) appendFreeVariables(fvs variables, t Term) variables {
 	switch t := e.Resolve(t).(type) {
 	case Variable:
-		for _, v := range fvs {
-			if v == t {
-				return fvs
-			}
+		if slices.Contains(fvs, t) {
+			return fvs
 		}
 		return append(fvs, t)
 	case Compound:

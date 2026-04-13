@@ -159,22 +159,22 @@ func New(in io.Reader, out io.Writer) *Interpreter {
 }
 
 // Exec executes a prolog program.
-func (i *Interpreter) Exec(query string, args ...interface{}) error {
+func (i *Interpreter) Exec(query string, args ...any) error {
 	return i.ExecContext(context.Background(), query, args...)
 }
 
 // ExecContext executes a prolog program with context.
-func (i *Interpreter) ExecContext(ctx context.Context, query string, args ...interface{}) error {
+func (i *Interpreter) ExecContext(ctx context.Context, query string, args ...any) error {
 	return i.Compile(ctx, query, args...)
 }
 
 // Query executes a prolog query and returns *Solutions.
-func (i *Interpreter) Query(query string, args ...interface{}) (*Solutions, error) {
+func (i *Interpreter) Query(query string, args ...any) (*Solutions, error) {
 	return i.QueryContext(context.Background(), query, args...)
 }
 
 // QueryContext executes a prolog query and returns *Solutions with context.
-func (i *Interpreter) QueryContext(ctx context.Context, query string, args ...interface{}) (*Solutions, error) {
+func (i *Interpreter) QueryContext(ctx context.Context, query string, args ...any) (*Solutions, error) {
 	p := engine.NewParser(&i.VM, strings.NewReader(query))
 	if err := p.SetPlaceholder(engine.NewAtom("?"), args...); err != nil {
 		return nil, err
@@ -216,12 +216,12 @@ func (i *Interpreter) QueryContext(ctx context.Context, query string, args ...in
 var ErrNoSolutions = errors.New("no solutions")
 
 // QuerySolution executes a Prolog query for the first solution.
-func (i *Interpreter) QuerySolution(query string, args ...interface{}) *Solution {
+func (i *Interpreter) QuerySolution(query string, args ...any) *Solution {
 	return i.QuerySolutionContext(context.Background(), query, args...)
 }
 
 // QuerySolutionContext executes a Prolog query with context.
-func (i *Interpreter) QuerySolutionContext(ctx context.Context, query string, args ...interface{}) *Solution {
+func (i *Interpreter) QuerySolutionContext(ctx context.Context, query string, args ...any) *Solution {
 	sols, err := i.QueryContext(ctx, query, args...)
 	if err != nil {
 		return &Solution{err: err}

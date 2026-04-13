@@ -187,7 +187,7 @@ func TestParser_Replace(t *testing.T) {
 		title        string
 		doubleQuotes doubleQuotes
 		input        string
-		args         []interface{}
+		args         []any
 		err, termErr error
 		term         Term
 	}{
@@ -195,39 +195,39 @@ func TestParser_Replace(t *testing.T) {
 			title:        "chars",
 			doubleQuotes: doubleQuotesChars,
 			input:        `[?, ?, ?, ?].`,
-			args:         []interface{}{1.0, 2, "foo", []string{"a", "b", "c"}},
+			args:         []any{1.0, 2, "foo", []string{"a", "b", "c"}},
 			term:         List(Float(1.0), Integer(2), CharList("foo"), List(CharList("a"), CharList("b"), CharList("c"))),
 		},
 		{
 			title:        "codes",
 			doubleQuotes: doubleQuotesCodes,
 			input:        `[?, ?, ?, ?].`,
-			args:         []interface{}{1.0, 2, "foo", []string{"a", "b", "c"}},
+			args:         []any{1.0, 2, "foo", []string{"a", "b", "c"}},
 			term:         List(Float(1.0), Integer(2), CodeList("foo"), List(CodeList("a"), CodeList("b"), CodeList("c"))),
 		},
 		{
 			title:        "atom",
 			doubleQuotes: doubleQuotesAtom,
 			input:        `[?, ?, ?, ?].`,
-			args:         []interface{}{1.0, 2, "foo", []string{"a", "b", "c"}},
+			args:         []any{1.0, 2, "foo", []string{"a", "b", "c"}},
 			term:         List(Float(1.0), Integer(2), NewAtom("foo"), List(NewAtom("a"), NewAtom("b"), NewAtom("c"))),
 		},
 		{
 			title: "invalid argument",
 			input: `[?].`,
-			args:  []interface{}{nil},
+			args:  []any{nil},
 			err:   errors.New("can't convert to term: <invalid reflect.Value>"),
 		},
 		{
 			title:   "too few arguments",
 			input:   `[?, ?, ?, ?, ?].`,
-			args:    []interface{}{1.0, 2, "foo", []string{"a", "b", "c"}},
+			args:    []any{1.0, 2, "foo", []string{"a", "b", "c"}},
 			termErr: errors.New("not enough arguments for placeholders"),
 		},
 		{
 			title:   "too many arguments",
 			input:   `[?, ?, ?, ?].`,
-			args:    []interface{}{1.0, 2, "foo", []string{"a", "b", "c"}, "extra"},
+			args:    []any{1.0, 2, "foo", []string{"a", "b", "c"}, "extra"},
 			termErr: errors.New("too many arguments for placeholders: [extra]"),
 		},
 	}

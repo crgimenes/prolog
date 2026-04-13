@@ -55,51 +55,51 @@ func TestSolutions_Scan(t *testing.T) {
 	tests := []struct {
 		title  string
 		sols   Solutions
-		dest   interface{}
+		dest   any
 		err    error
-		result interface{}
+		result any
 	}{
 		{title: "struct: empty", sols: Solutions{}, dest: &struct{}{}, result: &struct{}{}},
 
 		{title: "struct: interface, variable", sols: sols(map[string]engine.Term{
 			"X": engine.NewVariable(),
-		}), dest: &struct{ X interface{} }{}, result: &struct{ X interface{} }{
+		}), dest: &struct{ X any }{}, result: &struct{ X any }{
 			X: nil,
 		}},
 		{title: "struct: interface, atom", sols: sols(map[string]engine.Term{
 			"X": engine.NewAtom("foo"),
-		}), dest: &struct{ X interface{} }{}, result: &struct{ X interface{} }{
+		}), dest: &struct{ X any }{}, result: &struct{ X any }{
 			X: "foo",
 		}},
 		{title: "struct: interface, empty list", sols: sols(map[string]engine.Term{
 			"X": engine.NewAtom("[]"),
-		}), dest: &struct{ X interface{} }{}, result: &struct{ X interface{} }{
-			X: []interface{}{},
+		}), dest: &struct{ X any }{}, result: &struct{ X any }{
+			X: []any{},
 		}},
 		{title: "struct: interface, integer", sols: sols(map[string]engine.Term{
 			"X": engine.Integer(1),
-		}), dest: &struct{ X interface{} }{}, result: &struct{ X interface{} }{
+		}), dest: &struct{ X any }{}, result: &struct{ X any }{
 			X: 1,
 		}},
 		{title: "struct: interface, float", sols: sols(map[string]engine.Term{
 			"X": engine.Float(1),
-		}), dest: &struct{ X interface{} }{}, result: &struct{ X interface{} }{
+		}), dest: &struct{ X any }{}, result: &struct{ X any }{
 			X: 1.0,
 		}},
 		{title: "struct: interface, list", sols: sols(map[string]engine.Term{
 			"X": engine.List(engine.Integer(1), engine.Integer(2), engine.Integer(3)),
-		}), dest: &struct{ X interface{} }{}, result: &struct{ X interface{} }{
-			X: []interface{}{1, 2, 3},
+		}), dest: &struct{ X any }{}, result: &struct{ X any }{
+			X: []any{1, 2, 3},
 		}},
 		{title: "struct: interface, list with unknown", sols: sols(map[string]engine.Term{
 			"X": engine.List(engine.Integer(1), nil, engine.Integer(3)),
-		}), dest: &struct{ X interface{} }{}, err: errConversion},
+		}), dest: &struct{ X any }{}, err: errConversion},
 		{title: "struct: interface, not list", sols: sols(map[string]engine.Term{
 			"X": engine.PartialList(engine.NewVariable(), engine.Integer(1), engine.Integer(2), engine.Integer(3)),
-		}), dest: &struct{ X interface{} }{}, err: errConversion},
+		}), dest: &struct{ X any }{}, err: errConversion},
 		{title: "struct: interface, unknown", sols: sols(map[string]engine.Term{
 			"X": nil,
-		}), dest: &struct{ X interface{} }{}, err: errConversion},
+		}), dest: &struct{ X any }{}, err: errConversion},
 
 		{title: "struct: string, atom", sols: sols(map[string]engine.Term{
 			"X": engine.NewAtom("foo"),
@@ -194,16 +194,16 @@ func TestSolutions_Scan(t *testing.T) {
 			X int
 		}{X: 1}},
 
-		{title: "map: empty", sols: Solutions{}, dest: map[string]interface{}{}, result: map[string]interface{}{}},
+		{title: "map: empty", sols: Solutions{}, dest: map[string]any{}, result: map[string]any{}},
 		{title: "map: interface, integer", sols: sols(map[string]engine.Term{
 			"X": engine.Integer(1),
-		}), dest: map[string]interface{}{}, result: map[string]interface{}{
+		}), dest: map[string]any{}, result: map[string]any{
 			"X": 1,
 		}},
-		{title: "map: non-string key", sols: Solutions{}, dest: map[int]interface{}{}, err: errors.New("map key is not string")},
+		{title: "map: non-string key", sols: Solutions{}, dest: map[int]any{}, err: errors.New("map key is not string")},
 		{title: "map: interface, unknown", sols: sols(map[string]engine.Term{
 			"X": nil,
-		}), dest: map[string]interface{}{}, err: errConversion},
+		}), dest: map[string]any{}, err: errConversion},
 
 		{title: "invalid", sols: Solutions{}, dest: nil, err: errors.New("invalid kind: invalid")},
 	}
@@ -274,7 +274,7 @@ func ExampleSolutions_Scan_list() {
 			Atoms    []string
 			Integers []int64
 			Floats   []float64
-			Mixed    []interface{}
+			Mixed    []any
 		}
 		_ = sols.Scan(&s)
 

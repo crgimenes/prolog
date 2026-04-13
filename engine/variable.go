@@ -3,6 +3,7 @@ package engine
 import (
 	"fmt"
 	"io"
+	"maps"
 	"sync/atomic"
 )
 
@@ -36,7 +37,7 @@ func (v Variable) WriteTerm(w io.Writer, opts *WriteOptions, env *Env) error {
 	if a, ok := opts.variableNames[v]; ok {
 		_ = a.WriteTerm(&ew, opts.withQuoted(false).withLeft(operator{}).withRight(operator{}), env)
 	} else {
-		_, _ = ew.Write([]byte(fmt.Sprintf("_%d", v)))
+		_, _ = ew.Write(fmt.Appendf(nil, "_%d", v))
 	}
 	if letterDigit(opts.right.name) {
 		_, _ = ew.Write([]byte(" "))
@@ -90,9 +91,7 @@ func newExistentialVariablesSet(t Term, env *Env) variableSet {
 	ev := variableSet{}
 	for terms := []Term{t}; len(terms) > 0; terms, t = terms[:len(terms)-1], terms[len(terms)-1] {
 		if c, ok := env.Resolve(t).(Compound); ok && c.Functor() == atomCaret && c.Arity() == 2 {
-			for v, o := range newVariableSet(c.Arg(0), env) {
-				ev[v] = o
-			}
+			maps.Copy(ev, newVariableSet(c.Arg(0), env))
 			terms = append(terms, c.Arg(1))
 		}
 	}

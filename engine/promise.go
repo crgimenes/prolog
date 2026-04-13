@@ -128,7 +128,7 @@ func ensurePromise(p **Promise) {
 	}
 }
 
-func panicError(r interface{}) error {
+func panicError(r any) error {
 	return fmt.Errorf("panic: %v", r)
 }
 

@@ -26,7 +26,7 @@ func TestVM_Compile(t *testing.T) {
 	tests := []struct {
 		title  string
 		text   string
-		args   []interface{}
+		args   []any
 		err    error
 		result map[procedureIndicator]procedure
 	}{
@@ -365,7 +365,7 @@ foo(b).
 
 		{title: "error: invalid argument", text: `
 foo(?).
-`, args: []interface{}{nil}, err: errors.New("can't convert to term: <invalid reflect.Value>")},
+`, args: []any{nil}, err: errors.New("can't convert to term: <invalid reflect.Value>")},
 		{title: "error: syntax error", text: `
 foo().
 `, err: unexpectedTokenError{actual: Token{kind: tokenClose, val: ")"}}},
