@@ -1,36 +1,8 @@
-# ![prolog - the only reasonable scripting engine for Go](prolog.gif)
+*Atention*: This project is a fork of [ichiban/prolog](https://github.com/ichiban/prolog) and is not affiliated with the original project.
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/crgimenes/prolog.svg)](https://pkg.go.dev/github.com/crgimenes/prolog)
-[![Actions Status](https://github.com/crgimenes/prolog/actions/workflows/go.yml/badge.svg)](https://github.com/crgimenes/prolog/actions)
-[![Go Report Card](https://goreportcard.com/badge/github.com/crgimenes/prolog)](https://goreportcard.com/report/github.com/crgimenes/prolog)
-[![codecov](https://codecov.io/gh/ichiban/prolog/branch/main/graph/badge.svg?token=2FC3PZY7LN)](https://codecov.io/gh/ichiban/prolog)
-[![Mentioned in Awesome Go](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/awesome-go)
+Please consider contributing to the original project if you want to contribute to the development of this library. This fork is intended for experimentation and may contain breaking changes without notice.
 
-## What is this?
-
-`ichiban/prolog` is an embeddable **ISO Prolog** interpreter in **Go**.
-
-- **Standards-compliant:**
-  - [ISO/IEC 13211-1:1995 Information technology — Programming languages — Prolog — Part 1: General core](https://www.iso.org/standard/21413.html)
-  - [A Prologue for Prolog](http://www.complang.tuwien.ac.at/ulrich/iso-prolog/prologue)
-  - [DCGs](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/dcgs/dcgsdraft-2019-06-03.pdf)
-- **Easy to integrate:** `database/sql`-like Go API
-- **Highly customizable:**
-  - Sandboxing
-  - Custom predicates in Go
-  - Custom terms (data types) in Go
-
-## Comparison with Other Libraries
-
-|             | **prolog**             | otto            | go-lua          |
-| ----------- | ---------------------- | --------------- | --------------- |
-| Language    | ISO Prolog             | ECMA Script     | Lua             |
-| Paradigm    | 🎓 Logic               | Object-oriented | Object-oriented |
-| Go API      | 😻 `database/sql`-like | original        | original        |
-| Declarative | ✅                     | ❌              | ❌              |
-| Sandboxing  | ✅                     | ❌              | ✅              |
-
-## Getting started
+---
 
 ### Install latest version
 
@@ -119,53 +91,3 @@ if err := sols.Err(); err != nil {
 }
 ```
 
-## The Default Language
-
-`ichiban/prolog` adheres the ISO standard and comes with the ISO predicates as well as the Prologue for Prolog and DCG predicates.
-
-See [the Wiki](https://github.com/crgimenes/prolog/wiki) for the directives and the built-in predicates.
-
-### Top Level
-
-`1pl` is an experimental top level command for testing the default language and its compliance to the ISO standard.
-
-You can install it with `go install`:
-
-```console
-go install github.com/crgimenes/prolog/cmd/1pl@latest
-```
-
-Then, you can enter the top level with `1pl`:
-
-```console
-$(go env GOPATH)/bin/1pl [<file>...]
-```
-
-## Extensions
-
-- **[predicates](https://github.com/guregu/predicates):** Native predicates for ichiban/prolog.
-- **[kagomelog](https://github.com/crgimenes/kagomelog):** a Japanese morphological analyzing predicate.
-
-## License
-
-Distributed under the MIT license. See `LICENSE` for more information.
-
-## Contributing
-
-See `ARCHITECTURE.md` for architecture details.
-
-1. Fork it (https://github.com/crgimenes/prolog/fork)
-2. Create your feature branch (git checkout -b feature/fooBar)
-3. Commit your changes (git commit -am 'Add some fooBar')
-4. Push to the branch (git push origin feature/fooBar)
-5. Create a new Pull Request
-
-## Acknowledgments
-
-We would like to extend our thanks to the following individuals for their contributions to this project:
-
-- [guregu](https://github.com/guregu) for contributing code and ideas
-- [Markus Triska](https://github.com/triska) for his deep knowledge and insights on modern Prolog, as evidenced by his insightful comments on issues
-- [Prof. Ulrich Neumerkel](https://github.com/UWN) for valuable guidance, his [works on ISO standards](http://www.complang.tuwien.ac.at/ulrich/iso-prolog/), [the Prologue for Prolog](http://www.complang.tuwien.ac.at/ulrich/iso-prolog/prologue), and DCGs.
-
-We are grateful for the support and contributions of everyone involved in this project. Arigatou gozaimasu!
