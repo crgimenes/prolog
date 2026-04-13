@@ -645,10 +645,10 @@ func TestFunctor(t *testing.T) {
 		// {title: `current_prolog_flag(max_arity, A), X is A + 1, functor(T, foo, X).`}
 		{title: `Minus_1 is 0 - 1, functor(F, foo, Minus_1).`, term: f, name: NewAtom("foo"), arity: Integer(-1), err: domainError(validDomainNotLessThanZero, Integer(-1), nil)},
 
-		// https://github.com/ichiban/prolog/issues/247
+		// https://github.com/crgimenes/prolog/issues/247
 		{title: `functor(X, Y, 0).`, term: x, name: y, arity: Integer(0), err: InstantiationError(nil)},
 
-		// https://github.com/ichiban/prolog/issues/226
+		// https://github.com/crgimenes/prolog/issues/226
 		{title: `functor(F, f, max_int).`, term: f, name: NewAtom("f"), arity: maxInt, err: resourceError(resourceMemory, nil)},
 	}
 
@@ -801,7 +801,7 @@ func TestUniv(t *testing.T) {
 		}},
 		{title: "term is an atomic, the length of list is not 1", term: Integer(1), list: List(), ok: false},
 
-		// https://github.com/ichiban/prolog/issues/244
+		// https://github.com/crgimenes/prolog/issues/244
 		{title: "term is atomic", term: NewAtom("c"), list: PartialList(as, a), ok: true, env: map[Variable]Term{
 			a:  NewAtom("c"),
 			as: List(),
@@ -4054,7 +4054,7 @@ func TestWriteTerm(t *testing.T) {
 		{title: `write_term(S, s(s(0)), [max_depth(2)]).`, sOrA: w, term: NewAtom("s").Apply(NewAtom("s").Apply(Integer(0))), options: List(atomMaxDepth.Apply(Integer(2))), ok: true, output: `s(s(...))`},
 		{title: `write_term(S, _, [max_depth(_)]).`, sOrA: w, term: NewVariable(), options: List(atomMaxDepth.Apply(NewVariable())), err: InstantiationError(nil)},
 		{title: `write_term(S, _, [max_depth(foo)]).`, sOrA: w, term: NewVariable(), options: List(atomMaxDepth.Apply(NewAtom("foo"))), err: domainError(validDomainWriteOption, atomMaxDepth.Apply(NewAtom("foo")), nil)},
-		{title: `L = [a, b|L], write_term(S, L, [max_depth(9)]).`, sOrA: w, term: l, options: List(atomMaxDepth.Apply(Integer(9))), env: NewEnv().bind(l, PartialList(l, NewAtom("a"), NewAtom("b"))), ok: true, output: `[a,b,a,b,a,b,a,b,a|...]`}, // https://github.com/ichiban/prolog/issues/297#issuecomment-1646750461
+		{title: `L = [a, b|L], write_term(S, L, [max_depth(9)]).`, sOrA: w, term: l, options: List(atomMaxDepth.Apply(Integer(9))), env: NewEnv().bind(l, PartialList(l, NewAtom("a"), NewAtom("b"))), ok: true, output: `[a,b,a,b,a,b,a,b,a|...]`}, // https://github.com/crgimenes/prolog/issues/297#issuecomment-1646750461
 	}
 
 	var vm VM

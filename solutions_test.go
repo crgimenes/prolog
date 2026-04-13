@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ichiban/prolog/engine"
+	"github.com/crgimenes/prolog/engine"
 
 	"github.com/stretchr/testify/assert"
 )

@@ -1,8 +1,8 @@
 # ![prolog - the only reasonable scripting engine for Go](prolog.gif)
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/ichiban/prolog.svg)](https://pkg.go.dev/github.com/ichiban/prolog)
-[![Actions Status](https://github.com/ichiban/prolog/actions/workflows/go.yml/badge.svg)](https://github.com/ichiban/prolog/actions)
-[![Go Report Card](https://goreportcard.com/badge/github.com/ichiban/prolog)](https://goreportcard.com/report/github.com/ichiban/prolog)
+[![Go Reference](https://pkg.go.dev/badge/github.com/crgimenes/prolog.svg)](https://pkg.go.dev/github.com/crgimenes/prolog)
+[![Actions Status](https://github.com/crgimenes/prolog/actions/workflows/go.yml/badge.svg)](https://github.com/crgimenes/prolog/actions)
+[![Go Report Card](https://goreportcard.com/badge/github.com/crgimenes/prolog)](https://goreportcard.com/report/github.com/crgimenes/prolog)
 [![codecov](https://codecov.io/gh/ichiban/prolog/branch/main/graph/badge.svg?token=2FC3PZY7LN)](https://codecov.io/gh/ichiban/prolog)
 [![Mentioned in Awesome Go](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/awesome-go)
 
@@ -35,7 +35,7 @@
 ### Install latest version
 
 ```console
-go get -u github.com/ichiban/prolog
+go get -u github.com/crgimenes/prolog
 ```
 
 ### Usage
@@ -123,7 +123,7 @@ if err := sols.Err(); err != nil {
 
 `ichiban/prolog` adheres the ISO standard and comes with the ISO predicates as well as the Prologue for Prolog and DCG predicates.
 
-See [the Wiki](https://github.com/ichiban/prolog/wiki) for the directives and the built-in predicates.
+See [the Wiki](https://github.com/crgimenes/prolog/wiki) for the directives and the built-in predicates.
 
 ### Top Level
 
@@ -132,7 +132,7 @@ See [the Wiki](https://github.com/ichiban/prolog/wiki) for the directives and th
 You can install it with `go install`:
 
 ```console
-go install github.com/ichiban/prolog/cmd/1pl@latest
+go install github.com/crgimenes/prolog/cmd/1pl@latest
 ```
 
 Then, you can enter the top level with `1pl`:
@@ -144,7 +144,7 @@ $(go env GOPATH)/bin/1pl [<file>...]
 ## Extensions
 
 - **[predicates](https://github.com/guregu/predicates):** Native predicates for ichiban/prolog.
-- **[kagomelog](https://github.com/ichiban/kagomelog):** a Japanese morphological analyzing predicate.
+- **[kagomelog](https://github.com/crgimenes/kagomelog):** a Japanese morphological analyzing predicate.
 
 ## License
 
@@ -154,7 +154,7 @@ Distributed under the MIT license. See `LICENSE` for more information.
 
 See `ARCHITECTURE.md` for architecture details.
 
-1. Fork it (https://github.com/ichiban/prolog/fork)
+1. Fork it (https://github.com/crgimenes/prolog/fork)
 2. Create your feature branch (git checkout -b feature/fooBar)
 3. Commit your changes (git commit -am 'Add some fooBar')
 4. Push to the branch (git push origin feature/fooBar)

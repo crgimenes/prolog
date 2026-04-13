@@ -16,8 +16,8 @@ import (
 
 	"golang.org/x/crypto/ssh/terminal"
 
-	"github.com/ichiban/prolog"
-	"github.com/ichiban/prolog/engine"
+	"github.com/crgimenes/prolog"
+	"github.com/crgimenes/prolog/engine"
 )
 
 const (
@@ -42,7 +42,7 @@ func main() {
 
 	fmt.Printf(`Top level for ichiban/prolog %s
 This is for testing purposes only!
-See https://github.com/ichiban/prolog for more details.
+See https://github.com/crgimenes/prolog for more details.
 Type Ctrl-C or 'halt.' to exit.
 `, version)
 

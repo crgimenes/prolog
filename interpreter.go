@@ -4,7 +4,7 @@ import (
 	"context"
 	_ "embed" // for go:embed
 	"errors"
-	"github.com/ichiban/prolog/engine"
+	"github.com/crgimenes/prolog/engine"
 	"io"
 	"io/fs"
 	"os"

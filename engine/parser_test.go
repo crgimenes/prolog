@@ -152,7 +152,7 @@ func TestParser_Term(t *testing.T) {
 		{input: `"\"".`, doubleQuotes: doubleQuotesAtom, term: NewAtom(`"`)},
 		{input: "\"\\`\".", doubleQuotes: doubleQuotesAtom, term: NewAtom("`")},
 
-		// https://github.com/ichiban/prolog/issues/219#issuecomment-1200489336
+		// https://github.com/crgimenes/prolog/issues/219#issuecomment-1200489336
 		{input: `write('[]').`, term: &compound{functor: NewAtom(`write`), args: []Term{NewAtom(`[]`)}}},
 		{input: `write('{}').`, term: &compound{functor: NewAtom(`write`), args: []Term{NewAtom(`{}`)}}},
 	}

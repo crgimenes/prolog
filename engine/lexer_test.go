@@ -40,7 +40,7 @@ func TestLexer_Token(t *testing.T) {
 		{input: `/ *`, token: Token{kind: tokenGraphic, val: `/`}},
 		{input: "/* comment *", err: io.EOF},
 		{input: `/🙈`, err: errMonkey},
-		{input: `/* **/foo`, token: Token{kind: tokenLetterDigit, val: "foo"}}, // https://github.com/ichiban/prolog/issues/326
+		{input: `/* **/foo`, token: Token{kind: tokenLetterDigit, val: "foo"}}, // https://github.com/crgimenes/prolog/issues/326
 
 		{input: `改善`, token: Token{kind: tokenLetterDigit, val: `改善`}},
 		{input: `プロログ`, token: Token{kind: tokenLetterDigit, val: `プロログ`}},

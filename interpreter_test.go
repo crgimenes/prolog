@@ -5,7 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/ichiban/prolog/engine"
+	"github.com/crgimenes/prolog/engine"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"os"
