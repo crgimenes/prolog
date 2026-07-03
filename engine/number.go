@@ -1323,14 +1323,14 @@ func subF(x, y Float) (Float, error) {
 }
 
 func mulF(x, y Float) (Float, error) {
-	switch {
-	case y != 0 && x > math.MaxFloat64/y:
-		return 0, exceptionalValueFloatOverflow
-	case y != 0 && x < -math.MaxFloat64/y:
+	// Overflow is detected on the result: finite operands multiply to ±Inf iff
+	// the product exceeds the float range. A pre-check like x > MaxFloat64/y
+	// flips its meaning when y is negative and rejected valid products such as
+	// 1.0 * -1.0 with a spurious float_overflow.
+	r := x * y
+	if math.IsInf(float64(r), 0) {
 		return 0, exceptionalValueFloatOverflow
 	}
-
-	r := x * y
 
 	// Underflow: x*y = 0 iff x = 0 or y = 0.
 	if r == 0 && x != 0 && y != 0 {
@@ -1341,16 +1341,17 @@ func mulF(x, y Float) (Float, error) {
 }
 
 func divF(x, y Float) (Float, error) {
-	switch {
-	case y == 0:
+	if y == 0 {
 		return 0, exceptionalValueZeroDivisor
-	case x > math.MaxFloat64*y:
-		return 0, exceptionalValueFloatOverflow
-	case x < -math.MaxFloat64*y:
-		return 0, exceptionalValueFloatOverflow
 	}
 
+	// Same rationale as mulF: check the result, not a sign-sensitive bound
+	// (x > MaxFloat64*y inverted for negative y, so 1.0 / -1.0 raised a
+	// spurious float_overflow).
 	r := x / y
+	if math.IsInf(float64(r), 0) {
+		return 0, exceptionalValueFloatOverflow
+	}
 
 	// Underflow: x/y = 0 iff x = 0 and y != 0.
 	if r == 0 && x != 0 {

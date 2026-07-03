@@ -488,3 +488,52 @@ func (m *mockNumber) Compare(t Term, env *Env) int {
 	args := m.Called(t, env)
 	return args.Int(0)
 }
+
+// TestFloatMulDivNegativeOperands is a regression test: the overflow
+// pre-checks in mulF/divF used sign-sensitive bounds (x > MaxFloat64/y and
+// x > MaxFloat64*y) whose meaning inverts for negative y, so ordinary products
+// and quotients like 1.0 * -1.0 raised a spurious float_overflow.
+func TestFloatMulDivNegativeOperands(t *testing.T) {
+	tests := []struct {
+		title string
+		fn    func(Float, Float) (Float, error)
+		x, y  Float
+		want  Float
+		err   error
+	}{
+		{title: "1.0 * -1.0", fn: mulF, x: 1, y: -1, want: -1},
+		{title: "2.0 * -3.0", fn: mulF, x: 2, y: -3, want: -6},
+		{title: "-2.0 * -3.0", fn: mulF, x: -2, y: -3, want: 6},
+		{title: "1.0 / -1.0", fn: divF, x: 1, y: -1, want: -1},
+		{title: "-1.0 / -1.0", fn: divF, x: -1, y: -1, want: 1},
+		{title: "1.0 / -4.0", fn: divF, x: 1, y: -4, want: -0.25},
+
+		{title: "overflow still detected: max * 2", fn: mulF, x: math.MaxFloat64, y: 2, err: evaluationError(exceptionalValueFloatOverflow, nil)},
+		{title: "overflow still detected: max * -2", fn: mulF, x: math.MaxFloat64, y: -2, err: evaluationError(exceptionalValueFloatOverflow, nil)},
+		{title: "overflow still detected: max / 0.5", fn: divF, x: math.MaxFloat64, y: 0.5, err: evaluationError(exceptionalValueFloatOverflow, nil)},
+		{title: "overflow still detected: -max / -0.5", fn: divF, x: -math.MaxFloat64, y: -0.5, err: evaluationError(exceptionalValueFloatOverflow, nil)},
+		{title: "zero divisor still detected", fn: divF, x: 1, y: 0, err: evaluationError(exceptionalValueZeroDivisor, nil)},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.title, func(t *testing.T) {
+			r, err := tt.fn(tt.x, tt.y)
+			if tt.err != nil {
+				ev, ok := err.(exceptionalValue)
+				if !ok {
+					t.Fatalf("expected an exceptional value, got %v", err)
+				}
+				if evaluationError(ev, nil).Error() != tt.err.Error() {
+					t.Fatalf("expected %v, got %v", tt.err, evaluationError(ev, nil))
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if r != tt.want {
+				t.Fatalf("expected %v, got %v", tt.want, r)
+			}
+		})
+	}
+}
