@@ -137,7 +137,8 @@ func (i *altIterator) Next() bool {
 		}
 
 		// if-then-else construct
-		if c, ok := i.Env.Resolve(a.Arg(0)).(Compound); ok && c.Functor() == atomThen && c.Arity() == 2 {
+		c, ok := i.Env.Resolve(a.Arg(0)).(Compound)
+		if ok && c.Functor() == atomThen && c.Arity() == 2 {
 			i.current = a
 			i.Alt = nil
 			return true
@@ -172,7 +173,8 @@ type anyIterator struct {
 // Next proceeds to the next element and returns true if there's such an element.
 func (i *anyIterator) Next() bool {
 	if i.backend == nil {
-		if a, ok := i.Env.Resolve(i.Any).(Compound); ok && a.Functor() == atomDot && a.Arity() == 2 {
+		a, ok := i.Env.Resolve(i.Any).(Compound)
+		if ok && a.Functor() == atomDot && a.Arity() == 2 {
 			i.backend = &ListIterator{List: i.Any, Env: i.Env}
 		} else {
 			i.backend = &seqIterator{Seq: i.Any, Env: i.Env}

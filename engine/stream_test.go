@@ -668,7 +668,7 @@ func newNonAbruptReader(b []byte) nonAbruptReader {
 
 func (r nonAbruptReader) Read(b []byte) (int, error) {
 	n, err := r.Reader.Read(b)
-	if err == nil && r.Reader.Len() == 0 {
+	if err == nil && r.Len() == 0 {
 		err = io.EOF
 	}
 	return n, err

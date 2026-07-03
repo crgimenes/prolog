@@ -27,7 +27,8 @@ func expandDCG(term Term, env *Env) (Term, error) {
 	}
 
 	s0, s1, s := NewVariable(), NewVariable(), NewVariable()
-	if c, ok := env.Resolve(rule.Arg(0)).(Compound); ok && c.Functor() == atomComma && c.Arity() == 2 {
+	c, ok2 := env.Resolve(rule.Arg(0)).(Compound)
+	if ok2 && c.Functor() == atomComma && c.Arity() == 2 {
 		head, err := dcgNonTerminal(c.Arg(0), s0, s, env)
 		if err != nil {
 			return nil, err
@@ -74,7 +75,8 @@ func dcgTerminals(terminals, list, rest Term, env *Env) (Term, error) {
 	for iter.Next() {
 		elems = append(elems, iter.Current())
 	}
-	if err := iter.Err(); err != nil {
+	err := iter.Err()
+	if err != nil {
 		return nil, err
 	}
 	return atomEqual.Apply(list, PartialList(rest, elems...)), nil
@@ -104,7 +106,8 @@ func init() {
 		},
 		{name: atomSemiColon, arity: 2}: func(args []Term, list, rest Term, env *Env) (Term, error) {
 			body := dcgBody
-			if t, ok := env.Resolve(args[0]).(Compound); ok && t.Functor() == atomThen && t.Arity() == 2 {
+			t, ok := env.Resolve(args[0]).(Compound)
+			if ok && t.Functor() == atomThen && t.Arity() == 2 {
 				body = dcgCBody
 			}
 			either, err := body(args[0], list, rest, env)
@@ -165,8 +168,9 @@ func init() {
 
 func dcgBody(term, list, rest Term, env *Env) (Term, error) {
 	term = env.Resolve(term)
-	if t, ok := term.(Variable); ok {
-		return atomPhrase.Apply(t, list, rest), nil
+	t2, ok := term.(Variable)
+	if ok {
+		return atomPhrase.Apply(t2, list, rest), nil
 	}
 
 	t, err := dcgCBody(term, list, rest, env)
@@ -181,7 +185,8 @@ func dcgCBody(term, list, rest Term, env *Env) (Term, error) {
 	if err != nil {
 		return nil, err
 	}
-	if c, ok := dcgConstr[pi]; ok {
+	c, ok := dcgConstr[pi]
+	if ok {
 		args := make([]Term, pi.arity)
 		for i := 0; i < int(pi.arity); i++ {
 			args[i] = arg(i)

@@ -143,7 +143,8 @@ func CallNth(vm *VM, goal, nth Term, k Cont, env *Env) *Promise {
 		}
 
 		u := Unify(vm, n, nth, k, env)
-		if nth, ok := nth.(Integer); ok && nth <= n {
+		nth2, ok := nth.(Integer)
+		if ok && nth2 <= n {
 			return cut(p, func(context.Context) *Promise {
 				return u
 			})
@@ -178,7 +179,8 @@ func SubsumesTerm(_ *VM, general, specific Term, k Cont, env *Env) *Promise {
 		return Bool(false)
 	}
 
-	if d := theta.simplify(general).Compare(specific, env); d != 0 {
+	d := theta.simplify(general).Compare(specific, env)
+	if d != 0 {
 		return Bool(false)
 	}
 
@@ -187,7 +189,8 @@ func SubsumesTerm(_ *VM, general, specific Term, k Cont, env *Env) *Promise {
 
 // TypeVar checks if t is a variable.
 func TypeVar(_ *VM, t Term, k Cont, env *Env) *Promise {
-	if _, ok := env.Resolve(t).(Variable); !ok {
+	_, ok := env.Resolve(t).(Variable)
+	if !ok {
 		return Bool(false)
 	}
 	return k(env)
@@ -195,7 +198,8 @@ func TypeVar(_ *VM, t Term, k Cont, env *Env) *Promise {
 
 // TypeFloat checks if t is a floating-point number.
 func TypeFloat(_ *VM, t Term, k Cont, env *Env) *Promise {
-	if _, ok := env.Resolve(t).(Float); !ok {
+	_, ok := env.Resolve(t).(Float)
+	if !ok {
 		return Bool(false)
 	}
 	return k(env)
@@ -203,7 +207,8 @@ func TypeFloat(_ *VM, t Term, k Cont, env *Env) *Promise {
 
 // TypeInteger checks if t is an integer.
 func TypeInteger(_ *VM, t Term, k Cont, env *Env) *Promise {
-	if _, ok := env.Resolve(t).(Integer); !ok {
+	_, ok := env.Resolve(t).(Integer)
+	if !ok {
 		return Bool(false)
 	}
 	return k(env)
@@ -211,7 +216,8 @@ func TypeInteger(_ *VM, t Term, k Cont, env *Env) *Promise {
 
 // TypeAtom checks if t is an atom.
 func TypeAtom(_ *VM, t Term, k Cont, env *Env) *Promise {
-	if _, ok := env.Resolve(t).(Atom); !ok {
+	_, ok := env.Resolve(t).(Atom)
+	if !ok {
 		return Bool(false)
 	}
 	return k(env)
@@ -219,7 +225,8 @@ func TypeAtom(_ *VM, t Term, k Cont, env *Env) *Promise {
 
 // TypeCompound checks if t is a compound term.
 func TypeCompound(_ *VM, t Term, k Cont, env *Env) *Promise {
-	if _, ok := env.Resolve(t).(Compound); !ok {
+	_, ok := env.Resolve(t).(Compound)
+	if !ok {
 		return Bool(false)
 	}
 	return k(env)
@@ -241,7 +248,8 @@ func cyclicTerm(t Term, visited []Term, env *Env) bool {
 	}
 	visited = append(visited, t)
 
-	if c, ok := t.(Compound); ok {
+	c, ok := t.(Compound)
+	if ok {
 		for i := 0; i < c.Arity(); i++ {
 			if cyclicTerm(c.Arg(i), visited, env) {
 				return true
@@ -360,7 +368,8 @@ func Univ(vm *VM, t, list Term, k Cont, env *Env) *Promise {
 		iter := ListIterator{List: list, Env: env, AllowPartial: true}
 		for iter.Next() {
 		}
-		if err := iter.Err(); err != nil {
+		err := iter.Err()
+		if err != nil {
 			return Error(err)
 		}
 		elems := []Term{t.Functor()}
@@ -372,7 +381,8 @@ func Univ(vm *VM, t, list Term, k Cont, env *Env) *Promise {
 		iter := ListIterator{List: list, Env: env, AllowPartial: true}
 		for iter.Next() {
 		}
-		if err := iter.Err(); err != nil {
+		err := iter.Err()
+		if err != nil {
 			return Error(err)
 		}
 		return Unify(vm, list, List(t), k, env)
@@ -393,7 +403,8 @@ func renamedCopy(t Term, copied map[termID]Term, env *Env) (Term, error) {
 		copied = map[termID]Term{}
 	}
 	t = env.Resolve(t)
-	if c, ok := copied[id(t)]; ok {
+	c, ok := copied[id(t)]
+	if ok {
 		return c, nil
 	}
 	switch t := t.(type) {
@@ -468,7 +479,8 @@ func TermVariables(vm *VM, term, vars Term, k Cont, env *Env) *Promise {
 		t, traverse = traverse[0], traverse[1:]
 		switch t := env.Resolve(t).(type) {
 		case Variable:
-			if _, ok := witness[t]; !ok {
+			_, ok := witness[t]
+			if !ok {
 				ret = append(ret, t)
 			}
 			witness[t] = struct{}{}
@@ -487,7 +499,8 @@ func TermVariables(vm *VM, term, vars Term, k Cont, env *Env) *Promise {
 	iter := ListIterator{List: vars, Env: env, AllowPartial: true}
 	for iter.Next() {
 	}
-	if err := iter.Err(); err != nil {
+	err := iter.Err()
+	if err != nil {
 		return Error(err)
 	}
 
@@ -547,19 +560,22 @@ func Op(vm *VM, priority, specifier, op Term, k Cont, env *Env) *Promise {
 				return Error(typeError(validTypeAtom, op, env))
 			}
 		}
-		if err := iter.Err(); err != nil {
+		err := iter.Err()
+		if err != nil {
 			return Error(err)
 		}
 	}
 
 	for _, name := range names {
-		if p := validateOp(vm, p, spec, name, env); p != nil {
-			return p
+		p2 := validateOp(vm, p, spec, name, env)
+		if p2 != nil {
+			return p2
 		}
 	}
 
 	for _, name := range names {
-		if class := spec.class(); vm.operators.definedInClass(name, spec.class()) {
+		class := spec.class()
+		if vm.operators.definedInClass(name, spec.class()) {
 			vm.operators.remove(name, class)
 		}
 
@@ -626,7 +642,7 @@ func CurrentOp(vm *VM, priority, specifier, op Term, k Cont, env *Env) *Promise 
 	case Variable:
 		break
 	case Atom:
-		if _, ok := map[Atom]struct{}{
+		_, ok := map[Atom]struct{}{
 			atomXF:  {},
 			atomYF:  {},
 			atomXFX: {},
@@ -634,7 +650,8 @@ func CurrentOp(vm *VM, priority, specifier, op Term, k Cont, env *Env) *Promise 
 			atomYFX: {},
 			atomFX:  {},
 			atomFY:  {},
-		}[s]; !ok {
+		}[s]
+		if !ok {
 			return Error(domainError(validDomainOperatorSpecifier, s, env))
 		}
 	default:
@@ -665,9 +682,10 @@ func CurrentOp(vm *VM, priority, specifier, op Term, k Cont, env *Env) *Promise 
 
 // Assertz appends t to the database.
 func Assertz(vm *VM, t Term, k Cont, env *Env) *Promise {
-	if err := assertMerge(vm, t, func(existing, new []clause) []clause {
+	err := assertMerge(vm, t, func(existing, new []clause) []clause {
 		return append(existing, new...)
-	}, env); err != nil {
+	}, env)
+	if err != nil {
 		return Error(err)
 	}
 	return k(env)
@@ -675,9 +693,10 @@ func Assertz(vm *VM, t Term, k Cont, env *Env) *Promise {
 
 // Asserta prepends t to the database.
 func Asserta(vm *VM, t Term, k Cont, env *Env) *Promise {
-	if err := assertMerge(vm, t, func(existing, new []clause) []clause {
+	err := assertMerge(vm, t, func(existing, new []clause) []clause {
 		return append(new, existing...)
-	}, env); err != nil {
+	}, env)
+	if err != nil {
 		return Error(err)
 	}
 	return k(env)
@@ -753,8 +772,9 @@ func collectionOf(vm *VM, agg func([]Term, *Env) Term, template, goal, instances
 	iter := ListIterator{List: instances, Env: env, AllowPartial: true}
 	for iter.Next() {
 	}
-	if err := iter.Err(); err != nil {
-		return Error(err)
+	err2 := iter.Err()
+	if err2 != nil {
+		return Error(err2)
 	}
 
 	return FindAll(vm, atomPlus.Apply(witness, template), g, s, func(env *Env) *Promise {
@@ -803,7 +823,8 @@ func variant(t1, t2 Term, env *Env) bool {
 		case Variable:
 			switch y := y.(type) {
 			case Variable:
-				if z, ok := s[x]; ok {
+				z, ok := s[x]
+				if ok {
 					if z != y {
 						return false
 					}
@@ -849,7 +870,8 @@ func FindAll(vm *VM, template, goal, instances Term, k Cont, env *Env) *Promise 
 	iter := ListIterator{List: instances, Env: env, AllowPartial: true}
 	for iter.Next() {
 	}
-	if err := iter.Err(); err != nil {
+	err := iter.Err()
+	if err != nil {
 		return Error(err)
 	}
 	return Delay(func(ctx context.Context) *Promise {
@@ -950,15 +972,17 @@ func Sort(vm *VM, list, sorted Term, k Cont, env *Env) *Promise {
 	for iter.Next() {
 		elems = append(elems, env.Resolve(iter.Current()))
 	}
-	if err := iter.Err(); err != nil {
+	err := iter.Err()
+	if err != nil {
 		return Error(err)
 	}
 
 	iter = ListIterator{List: sorted, Env: env, AllowPartial: true}
 	for iter.Next() {
 	}
-	if err := iter.Err(); err != nil {
-		return Error(err)
+	err2 := iter.Err()
+	if err2 != nil {
+		return Error(err2)
 	}
 
 	return Unify(vm, sorted, env.set(elems...), k, env)
@@ -981,7 +1005,8 @@ func KeySort(vm *VM, pairs, sorted Term, k Cont, env *Env) *Promise {
 			return Error(typeError(validTypePair, e, env))
 		}
 	}
-	if err := iter.Err(); err != nil {
+	err := iter.Err()
+	if err != nil {
 		return Error(err)
 	}
 
@@ -1002,8 +1027,9 @@ func KeySort(vm *VM, pairs, sorted Term, k Cont, env *Env) *Promise {
 				return Error(typeError(validTypePair, e, env))
 			}
 		}
-		if err := iter.Err(); err != nil {
-			return Error(err)
+		err2 := iter.Err()
+		if err2 != nil {
+			return Error(err2)
 		}
 	}
 
@@ -1052,10 +1078,12 @@ func CurrentPredicate(vm *VM, pi Term, k Cont, env *Env) *Promise {
 		if pi.Functor() != atomSlash || pi.Arity() != 2 {
 			return Error(typeError(validTypePredicateIndicator, pi, env))
 		}
-		if _, ok := env.Resolve(pi.Arg(0)).(Atom); !ok {
+		_, ok := env.Resolve(pi.Arg(0)).(Atom)
+		if !ok {
 			return Error(typeError(validTypePredicateIndicator, pi, env))
 		}
-		if _, ok := env.Resolve(pi.Arg(1)).(Integer); !ok {
+		_, ok2 := env.Resolve(pi.Arg(1)).(Integer)
+		if !ok2 {
 			return Error(typeError(validTypePredicateIndicator, pi, env))
 		}
 	default:
@@ -1137,7 +1165,8 @@ func Abolish(vm *VM, pi Term, k Cont, env *Env) *Promise {
 					return Error(domainError(validDomainNotLessThanZero, arity, env))
 				}
 				key := procedureIndicator{name: name, arity: arity}
-				if u, ok := vm.procedures[key].(*userDefined); !ok || !u.dynamic {
+				u, ok := vm.procedures[key].(*userDefined)
+				if !ok || !u.dynamic {
 					return Error(permissionError(operationModify, permissionTypeStaticProcedure, key.Term(), env))
 				}
 				delete(vm.procedures, key)
@@ -1252,7 +1281,8 @@ func Open(vm *VM, sourceSink, mode, stream, options Term, k Cont, env *Env) *Pro
 		return Error(typeError(validTypeAtom, mode, env))
 	}
 
-	if _, ok := env.Resolve(stream).(Variable); !ok {
+	_, ok := env.Resolve(stream).(Variable)
+	if !ok {
 		return Error(InstantiationError(env))
 	}
 
@@ -1261,11 +1291,14 @@ func Open(vm *VM, sourceSink, mode, stream, options Term, k Cont, env *Env) *Pro
 	case err == nil:
 		if s.mode == ioModeRead {
 			s.source = f
-			s.initRead()
+			// A freshly opened read stream cannot be wrong-mode nor past EOF,
+			// the only errors initRead reports.
+			_ = s.initRead()
 		} else {
 			s.sink = f
 		}
-		if fi, err := f.Stat(); err == nil {
+		fi, err2 := f.Stat()
+		if err2 == nil {
 			s.reposition = fi.Mode()&fs.ModeType == 0
 		}
 	case os.IsNotExist(err):
@@ -1278,11 +1311,13 @@ func Open(vm *VM, sourceSink, mode, stream, options Term, k Cont, env *Env) *Pro
 
 	iter := ListIterator{List: options, Env: env}
 	for iter.Next() {
-		if err := handleStreamOption(vm, &s, iter.Current(), env); err != nil {
+		err := handleStreamOption(vm, &s, iter.Current(), env)
+		if err != nil {
 			return Error(err)
 		}
 	}
-	if err := iter.Err(); err != nil {
+	err := iter.Err()
+	if err != nil {
 		return Error(err)
 	}
 
@@ -1317,7 +1352,8 @@ func handleStreamOptionAlias(vm *VM, s *Stream, o Compound, env *Env) error {
 	case Variable:
 		return InstantiationError(env)
 	case Atom:
-		if _, ok := vm.streams.lookup(a); ok {
+		_, ok := vm.streams.lookup(a)
+		if ok {
 			return permissionError(operationOpen, permissionTypeSourceSink, o, env)
 		}
 		s.alias = a
@@ -1420,12 +1456,14 @@ func Close(vm *VM, streamOrAlias, options Term, k Cont, env *Env) *Promise {
 			return Error(domainError(validDomainStreamOption, option, env))
 		}
 	}
-	if err := iter.Err(); err != nil {
-		return Error(err)
+	err2 := iter.Err()
+	if err2 != nil {
+		return Error(err2)
 	}
 
-	if err := s.Close(); err != nil && !force {
-		return Error(err)
+	err3 := s.Close()
+	if err3 != nil && !force {
+		return Error(err3)
 	}
 
 	return k(env)
@@ -1461,12 +1499,14 @@ func WriteTerm(vm *VM, streamOrAlias, t, options Term, k Cont, env *Env) *Promis
 	}
 	iter := ListIterator{List: options, Env: env}
 	for iter.Next() {
-		if err := writeTermOption(&opts, iter.Current(), env); err != nil {
-			return Error(err)
+		err2 := writeTermOption(&opts, iter.Current(), env)
+		if err2 != nil {
+			return Error(err2)
 		}
 	}
-	if err := iter.Err(); err != nil {
-		return Error(err)
+	err2 := iter.Err()
+	if err2 != nil {
+		return Error(err2)
 	}
 
 	w, err := s.textWriter()
@@ -1479,8 +1519,9 @@ func WriteTerm(vm *VM, streamOrAlias, t, options Term, k Cont, env *Env) *Promis
 		return Error(err)
 	}
 
-	if err := env.Resolve(t).WriteTerm(w, &opts, env); err != nil {
-		return Error(err)
+	err3 := env.Resolve(t).WriteTerm(w, &opts, env)
+	if err3 != nil {
+		return Error(err3)
 	}
 
 	return k(env)
@@ -1571,7 +1612,8 @@ func writeTermOptionVariableNames(option Compound, env *Env) (map[Variable]Atom,
 			continue
 		}
 
-		if _, ok := vns[v]; ok {
+		_, ok := vns[v]
+		if ok {
 			continue
 		}
 		vns[v] = n
@@ -1608,13 +1650,14 @@ func CharCode(vm *VM, char, code Term, k Cont, env *Env) *Promise {
 		case Variable:
 			return Error(InstantiationError(env))
 		case Integer:
-			r := rune(cd)
-
-			if !utf8.ValidRune(r) {
+			// Range-check BEFORE converting: rune(cd) truncates an int64, so a
+			// huge code could wrap into a valid rune and dodge ValidRune.
+			if cd < 0 || cd > utf8.MaxRune || !utf8.ValidRune(rune(cd)) {
 				return Error(representationError(flagCharacterCode, env))
 			}
+			r := rune(cd)
 
-			return Unify(vm, ch, Atom(r), k, env)
+			return Unify(vm, ch, Atom(r), k, env) // #nosec G115 -- r is a validated code point
 		default:
 			return Error(typeError(validTypeInteger, code, env))
 		}
@@ -1719,12 +1762,14 @@ func ReadTerm(vm *VM, streamOrAlias, out, options Term, k Cont, env *Env) *Promi
 	}
 	iter := ListIterator{List: options, Env: env}
 	for iter.Next() {
-		if err := readTermOption(&opts, iter.Current(), env); err != nil {
-			return Error(err)
+		err2 := readTermOption(&opts, iter.Current(), env)
+		if err2 != nil {
+			return Error(err2)
 		}
 	}
-	if err := iter.Err(); err != nil {
-		return Error(err)
+	err2 := iter.Err()
+	if err2 != nil {
+		return Error(err2)
 	}
 
 	p := NewParser(vm, s)
@@ -1854,7 +1899,7 @@ func GetChar(vm *VM, streamOrAlias, char Term, k Cont, env *Env) *Promise {
 			return Error(representationError(flagCharacter, env))
 		}
 
-		return Unify(vm, char, Atom(r), k, env)
+		return Unify(vm, char, Atom(r), k, env) // #nosec G115 -- r is a decoded rune, a non-negative code point
 	case io.EOF:
 		return Unify(vm, char, atomEndOfFile, k, env)
 	case errWrongIOMode:
@@ -1934,7 +1979,7 @@ func PeekChar(vm *VM, streamOrAlias, char Term, k Cont, env *Env) *Promise {
 			return Error(representationError(flagCharacter, env))
 		}
 
-		return Unify(vm, char, Atom(r), k, env)
+		return Unify(vm, char, Atom(r), k, env) // #nosec G115 -- r is a decoded rune, a non-negative code point
 	case io.EOF:
 		return Unify(vm, char, atomEndOfFile, k, env)
 	case errWrongIOMode:
@@ -2003,7 +2048,8 @@ func Clause(vm *VM, head, body Term, k Cont, env *Env) *Promise {
 
 func rulify(t Term, env *Env) Term {
 	t = env.Resolve(t)
-	if c, ok := t.(Compound); ok && c.Functor() == atomIf && c.Arity() == 2 {
+	c, ok := t.(Compound)
+	if ok && c.Functor() == atomIf && c.Arity() == 2 {
 		return t
 	}
 	return atomIf.Apply(t, atomTrue)
@@ -2097,16 +2143,19 @@ func SubAtom(vm *VM, atom, before, length, after, subAtom Term, k Cont, env *Env
 	case Atom:
 		rs := []rune(whole.String())
 
-		if err := checkPositiveInteger(before, env); err != nil {
+		err := checkPositiveInteger(before, env)
+		if err != nil {
 			return Error(err)
 		}
 
-		if err := checkPositiveInteger(length, env); err != nil {
-			return Error(err)
+		err2 := checkPositiveInteger(length, env)
+		if err2 != nil {
+			return Error(err2)
 		}
 
-		if err := checkPositiveInteger(after, env); err != nil {
-			return Error(err)
+		err3 := checkPositiveInteger(after, env)
+		if err3 != nil {
+			return Error(err3)
 		}
 
 		switch env.Resolve(subAtom).(type) {
@@ -2166,7 +2215,8 @@ func AtomChars(vm *VM, atom, chars Term, k Cont, env *Env) *Promise {
 				return Error(typeError(validTypeCharacter, e, env))
 			}
 		}
-		if err := iter.Err(); err != nil {
+		err := iter.Err()
+		if err != nil {
 			return Error(err)
 		}
 		return Unify(vm, atom, NewAtom(sb.String()), k, env)
@@ -2184,7 +2234,8 @@ func AtomChars(vm *VM, atom, chars Term, k Cont, env *Env) *Promise {
 				return Error(typeError(validTypeCharacter, e, env))
 			}
 		}
-		if err := iter.Err(); err != nil {
+		err := iter.Err()
+		if err != nil {
 			return Error(err)
 		}
 
@@ -2218,7 +2269,8 @@ func AtomCodes(vm *VM, atom, codes Term, k Cont, env *Env) *Promise {
 				return Error(typeError(validTypeInteger, e, env))
 			}
 		}
-		if err := iter.Err(); err != nil {
+		err := iter.Err()
+		if err != nil {
 			return Error(err)
 		}
 		return Unify(vm, atom, NewAtom(sb.String()), k, env)
@@ -2236,7 +2288,8 @@ func AtomCodes(vm *VM, atom, codes Term, k Cont, env *Env) *Promise {
 				return Error(typeError(validTypeInteger, e, env))
 			}
 		}
-		if err := iter.Err(); err != nil {
+		err := iter.Err()
+		if err != nil {
 			return Error(err)
 		}
 
@@ -2269,10 +2322,12 @@ func NumberChars(vm *VM, num, chars Term, k Cont, env *Env) *Promise {
 			return Error(typeError(validTypeCharacter, e, env))
 		}
 	}
-	if err := iter.Err(); err != nil {
-		return Error(err)
+	err2 := iter.Err()
+	if err2 != nil {
+		return Error(err2)
 	}
-	if _, ok := iter.Suffix().(Variable); ok {
+	_, ok := iter.Suffix().(Variable)
+	if ok {
 		return numberCharsWrite(vm, num, chars, k, env)
 	}
 
@@ -2318,7 +2373,8 @@ func numberCharsWrite(vm *VM, num, chars Term, k Cont, env *Env) *Promise {
 			return Error(typeError(validTypeCharacter, e, env))
 		}
 	}
-	if err := iter.Err(); err != nil {
+	err := iter.Err()
+	if err != nil {
 		return Error(err)
 	}
 
@@ -2328,7 +2384,7 @@ func numberCharsWrite(vm *VM, num, chars Term, k Cont, env *Env) *Promise {
 
 	cs := make([]Term, len(rs))
 	for i, r := range rs {
-		cs[i] = Atom(r)
+		cs[i] = Atom(r) // #nosec G115 -- r ranges over a string: a non-negative code point
 	}
 	return Unify(vm, chars, List(cs...), k, env)
 }
@@ -2343,7 +2399,7 @@ func NumberCodes(vm *VM, num, codes Term, k Cont, env *Env) *Promise {
 		case Variable:
 			return numberCodesWrite(vm, num, codes, k, env)
 		case Integer:
-			if !utf8.ValidRune(rune(e)) {
+			if e < 0 || e > utf8.MaxRune || !utf8.ValidRune(rune(e)) {
 				return Error(representationError(flagCharacterCode, env))
 			}
 			_, _ = sb.WriteRune(rune(e))
@@ -2351,10 +2407,12 @@ func NumberCodes(vm *VM, num, codes Term, k Cont, env *Env) *Promise {
 			return Error(typeError(validTypeInteger, e, env))
 		}
 	}
-	if err := iter.Err(); err != nil {
-		return Error(err)
+	err2 := iter.Err()
+	if err2 != nil {
+		return Error(err2)
 	}
-	if _, ok := iter.Suffix().(Variable); ok {
+	_, ok := iter.Suffix().(Variable)
+	if ok {
 		return numberCodesWrite(vm, num, codes, k, env)
 	}
 
@@ -2393,14 +2451,15 @@ func numberCodesWrite(vm *VM, num, codes Term, k Cont, env *Env) *Promise {
 		case Variable:
 			break
 		case Integer:
-			if !utf8.ValidRune(rune(e)) {
+			if e < 0 || e > utf8.MaxRune || !utf8.ValidRune(rune(e)) {
 				return Error(representationError(flagCharacterCode, env))
 			}
 		default:
 			return Error(typeError(validTypeInteger, e, env))
 		}
 	}
-	if err := iter.Err(); err != nil {
+	err := iter.Err()
+	if err != nil {
 		return Error(err)
 	}
 
@@ -2420,9 +2479,7 @@ func StreamProperty(vm *VM, stream, property Term, k Cont, env *Env) *Promise {
 	streams := make([]*Stream, 0, len(vm.streams.elems))
 	switch s := env.Resolve(stream).(type) {
 	case Variable:
-		for _, v := range vm.streams.elems {
-			streams = append(streams, v)
-		}
+		streams = append(streams, vm.streams.elems...)
 	case *Stream:
 		streams = append(streams, s)
 	default:
@@ -2572,10 +2629,12 @@ func CurrentCharConversion(vm *VM, inChar, outChar Term, k Cont, env *Env) *Prom
 		return Error(representationError(flagCharacter, env))
 	}
 
-	if c1, ok := env.Resolve(inChar).(Atom); ok {
+	c1, ok := env.Resolve(inChar).(Atom)
+	if ok {
 		r := []rune(c1.String())
-		if r, ok := vm.charConversions[r[0]]; ok {
-			return Unify(vm, outChar, Atom(r), k, env)
+		r2, ok2 := vm.charConversions[r[0]]
+		if ok2 {
+			return Unify(vm, outChar, Atom(r2), k, env) // #nosec G115 -- conversion table holds valid runes
 		}
 		return Unify(vm, outChar, c1, k, env)
 	}
@@ -2590,7 +2649,7 @@ func CurrentCharConversion(vm *VM, inChar, outChar Term, k Cont, env *Env) *Prom
 		}
 
 		ks[i] = func(context.Context) *Promise {
-			return Unify(vm, pattern, tuple(Atom(r), Atom(cr)), k, env)
+			return Unify(vm, pattern, tuple(Atom(r), Atom(cr)), k, env) // #nosec G115 -- both runes are valid code points
 		}
 	}
 	return Delay(ks...)
@@ -2622,7 +2681,8 @@ func SetPrologFlag(vm *VM, flag, value Term, k Cont, env *Env) *Promise {
 		case Variable:
 			return Error(InstantiationError(env))
 		case Atom:
-			if err := modify(vm, v); err != nil {
+			err := modify(vm, v)
+			if err != nil {
 				return Error(err)
 			}
 			return k(env)
@@ -2742,7 +2802,8 @@ func ExpandTerm(vm *VM, term1, term2 Term, k Cont, env *Env) *Promise {
 }
 
 func expand(vm *VM, term Term, env *Env) (Term, error) {
-	if _, ok := vm.procedures[procedureIndicator{name: atomTermExpansion, arity: 2}]; ok {
+	_, ok := vm.procedures[procedureIndicator{name: atomTermExpansion, arity: 2}]
+	if ok {
 		var ret Term
 		v := NewVariable()
 		ok, err := Call(vm, atomTermExpansion.Apply(term, v), func(env *Env) *Promise {
@@ -2785,7 +2846,8 @@ func nth(vm *VM, base Integer, n, list, elem Term, k Cont, env *Env) *Promise {
 				return Unify(vm, tuple(n, elem), tuple(i, e), k, env)
 			})
 		}
-		if err := iter.Err(); err != nil {
+		err := iter.Err()
+		if err != nil {
 			return Error(err)
 		}
 		return Delay(ks...)
@@ -2799,7 +2861,8 @@ func nth(vm *VM, base Integer, n, list, elem Term, k Cont, env *Env) *Promise {
 				return Unify(vm, elem, iter.Current(), k, env)
 			}
 		}
-		if err := iter.Err(); err != nil {
+		err := iter.Err()
+		if err != nil {
 			return Error(err)
 		}
 		return Bool(false)
@@ -2883,8 +2946,9 @@ func Length(vm *VM, list, length Term, k Cont, env *Env) *Promise {
 
 		switch suffix := env.Resolve(suffix).(type) {
 		case Variable: // partial list
-			if n, ok := n.(Integer); ok {
-				return lengthRundown(vm, suffix, n-skipped, k, env)
+			n2, ok := n.(Integer)
+			if ok {
+				return lengthRundown(vm, suffix, n2-skipped, k, env)
 			}
 
 			n := n.(Variable)
@@ -2905,7 +2969,8 @@ func Length(vm *VM, list, length Term, k Cont, env *Env) *Promise {
 				return Bool(false)
 			}
 
-			if _, ok := n.(Variable); !ok {
+			_, ok := n.(Variable)
+			if !ok {
 				return Bool(false)
 			}
 
@@ -2969,13 +3034,15 @@ func SkipMaxList(vm *VM, skip, max, list, suffix Term, k Cont, env *Env) *Promis
 // Append succeeds iff zs is the concatenation of lists xs and ys.
 func Append(vm *VM, xs, ys, zs Term, k Cont, env *Env) *Promise {
 	// A special case for non-empty lists without a variable in the spine.
-	if xs, ok := env.Resolve(xs).(Compound); ok {
-		iter := ListIterator{List: xs, Env: nil} // No variables allowed.
+	xs2, ok := env.Resolve(xs).(Compound)
+	if ok {
+		iter := ListIterator{List: xs2, Env: nil} // No variables allowed.
 		for iter.Next() {
 		}
-		if err := iter.Err(); err == nil {
+		err := iter.Err()
+		if err == nil {
 			return Unify(vm, zs, &partial{
-				Compound: xs,
+				Compound: xs2,
 				tail:     &ys,
 			}, k, env)
 		}

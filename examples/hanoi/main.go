@@ -14,7 +14,7 @@ func main() {
 	flag.Parse()
 
 	i := prolog.New(nil, nil)
-	if err := i.Exec(`
+	err2 := i.Exec(`
 hanoi(N) :- move(N, left, right, center).
 
 move(0, _, _, _) :- !.
@@ -23,8 +23,9 @@ move(N, X, Y, Z) :-
   move(M, X, Z, Y),
   actuate(X, Y),
   move(M, Z, Y, X).
-`); err != nil {
-		panic(err)
+`)
+	if err2 != nil {
+		panic(err2)
 	}
 
 	i.Register2(engine.NewAtom("actuate"), func(_ *engine.VM, x engine.Term, y engine.Term, k engine.Cont, env *engine.Env) *engine.Promise {
@@ -37,8 +38,9 @@ move(N, X, Y, Z) :-
 		panic(err)
 	}
 	defer func() {
-		if err := sols.Close(); err != nil {
-			panic(err)
+		err3 := sols.Close()
+		if err3 != nil {
+			panic(err3)
 		}
 	}()
 

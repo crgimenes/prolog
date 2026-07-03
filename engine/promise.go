@@ -87,8 +87,9 @@ func (p *Promise) Force(ctx context.Context) (ok bool, err error) {
 			if len(p.delayed) == 0 {
 				switch {
 				case p.err != nil:
-					if err := stack.recover(p.err); err != nil {
-						return false, err
+					err2 := stack.recover(p.err)
+					if err2 != nil {
+						return false, err2
 					}
 					continue
 				case p.ok:
@@ -123,7 +124,8 @@ func (p *Promise) child(ctx context.Context) (promise *Promise) {
 }
 
 func ensurePromise(p **Promise) {
-	if r := recover(); r != nil {
+	r := recover()
+	if r != nil {
 		*p = Error(panicError(r))
 	}
 }
@@ -142,7 +144,8 @@ func (s *promiseStack) pop() *Promise {
 
 func (s *promiseStack) popUntil(p *Promise) {
 	for len(*s) > 0 {
-		if pop := s.pop(); pop == p {
+		pop := s.pop()
+		if pop == p {
 			break
 		}
 	}
@@ -155,7 +158,8 @@ func (s *promiseStack) recover(err error) error {
 		if pop.recover == nil {
 			continue
 		}
-		if q := pop.recover(err); q != nil {
+		q := pop.recover(err)
+		if q != nil {
 			*s = append(*s, q)
 			return nil
 		}

@@ -34,7 +34,8 @@ func (v Variable) WriteTerm(w io.Writer, opts *WriteOptions, env *Env) error {
 	if letterDigit(opts.left.name) {
 		_, _ = ew.Write([]byte(" "))
 	}
-	if a, ok := opts.variableNames[v]; ok {
+	a, ok2 := opts.variableNames[v]
+	if ok2 {
 		_ = a.WriteTerm(&ew, opts.withQuoted(false).withLeft(operator{}).withRight(operator{}), env)
 	} else {
 		_, _ = ew.Write(fmt.Appendf(nil, "_%d", v))
@@ -90,7 +91,8 @@ func newVariableSet(t Term, env *Env) variableSet {
 func newExistentialVariablesSet(t Term, env *Env) variableSet {
 	ev := variableSet{}
 	for terms := []Term{t}; len(terms) > 0; terms, t = terms[:len(terms)-1], terms[len(terms)-1] {
-		if c, ok := env.Resolve(t).(Compound); ok && c.Functor() == atomCaret && c.Arity() == 2 {
+		c, ok := env.Resolve(t).(Compound)
+		if ok && c.Functor() == atomCaret && c.Arity() == 2 {
 			maps.Copy(ev, newVariableSet(c.Arg(0), env))
 			terms = append(terms, c.Arg(1))
 		}
@@ -108,7 +110,8 @@ func newFreeVariablesSet(t, v Term, env *Env) variableSet {
 	}
 
 	for v, n := range s {
-		if m, ok := bv[v]; !ok {
+		m, ok := bv[v]
+		if !ok {
 			fv[v] = n + m
 		}
 	}

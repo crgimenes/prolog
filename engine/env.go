@@ -200,7 +200,8 @@ func simplify(t Term, simplified map[termID]Compound, env *Env) Term {
 		simplified = map[termID]Compound{}
 	}
 	t = env.Resolve(t)
-	if c, ok := simplified[id(t)]; ok {
+	c, ok := simplified[id(t)]
+	if ok {
 		return c
 	}
 	switch t := t.(type) {
@@ -322,7 +323,8 @@ func contains(t, s Term, env *Env) bool {
 		}
 		return contains(ref, s, env)
 	case Compound:
-		if s, ok := s.(Atom); ok && t.Functor() == s {
+		s2, ok := s.(Atom)
+		if ok && t.Functor() == s2 {
 			return true
 		}
 		for i := 0; i < t.Arity(); i++ {

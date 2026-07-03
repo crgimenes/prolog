@@ -322,3 +322,24 @@ func TestParser_More(t *testing.T) {
 	assert.Equal(t, NewAtom("bar"), term)
 	assert.False(t, p.More())
 }
+
+// TestParserDepthLimit guards against unbounded parser recursion: a
+// pathological input (here an unterminated nested list) must return an error
+// rather than overflow the goroutine stack, which is a fatal, unrecoverable
+// crash and a denial-of-service vector for a host running untrusted programs.
+func TestParserDepthLimit(t *testing.T) {
+	deep := strings.Repeat("[", maxTermDepth+100)
+	p := NewParser(&VM{}, strings.NewReader(deep))
+	_, err := p.Term()
+	if err == nil {
+		t.Fatal("expected an error for over-deep nesting, got nil")
+	}
+
+	// A reasonably nested, well-formed term must still parse.
+	ok := strings.Repeat("[", 100) + "a" + strings.Repeat("]", 100)
+	p = NewParser(&VM{}, strings.NewReader(ok+" ."))
+	_, err = p.Term()
+	if err != nil {
+		t.Fatalf("moderate nesting should parse, got: %v", err)
+	}
+}

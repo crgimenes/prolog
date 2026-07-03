@@ -39,8 +39,9 @@ func (l *Lexer) rawNext() (rune, error) {
 }
 
 func (l *Lexer) conv(r rune) rune {
-	if r, ok := l.charConversions[r]; ok {
-		return r
+	r2, ok := l.charConversions[r]
+	if ok {
+		return r2
 	}
 	return r
 }
@@ -55,7 +56,7 @@ func (l *Lexer) accept(r rune) {
 
 func (l *Lexer) chunk() string {
 	b := l.buf.Bytes()[l.offset:]
-	return *(*string)(unsafe.Pointer(&b))
+	return *(*string)(unsafe.Pointer(&b)) // #nosec G103 -- zero-copy view of the token bytes; b is not reused
 }
 
 // Token is a smallest meaningful unit of prolog program.
@@ -739,7 +740,6 @@ func (l *Lexer) fraction() (Token, error) {
 				return Token{}, err
 			case isDecimalDigitChar(r):
 				l.backup()
-				break
 			default:
 				l.backup()
 				if sign != 0 {

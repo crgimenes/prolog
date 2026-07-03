@@ -1980,7 +1980,8 @@ func TestSetOf(t *testing.T) {
 				return Unify(vm, elem, e, k, env)
 			})
 		}
-		if err := iter.Err(); err != nil {
+		err := iter.Err()
+		if err != nil {
 			return Error(err)
 		}
 		return Delay(ks...)
@@ -4066,9 +4067,10 @@ func TestWriteTerm(t *testing.T) {
 			buf.Reset()
 			ok, err := WriteTerm(&vm, tt.sOrA, tt.term, tt.options, Success, tt.env).Force(context.Background())
 			assert.Equal(t, tt.ok, ok)
+			te, isException := tt.err.(Exception)
 			if tt.err == nil {
 				assert.NoError(t, err)
-			} else if te, ok := tt.err.(Exception); ok {
+			} else if isException {
 				_, ok := NewEnv().Unify(te.term, err.(Exception).term)
 				assert.True(t, ok)
 			}
@@ -6063,9 +6065,10 @@ func TestNumberCodes(t *testing.T) {
 				}
 				return Bool(true)
 			}, nil).Force(context.Background())
+			te, isException := tt.err.(Exception)
 			if tt.err == nil {
 				assert.NoError(t, err)
-			} else if te, ok := tt.err.(Exception); ok {
+			} else if isException {
 				_, ok := NewEnv().Unify(te.term, err.(Exception).term)
 				assert.True(t, ok)
 			}

@@ -176,8 +176,9 @@ func (i *Interpreter) Query(query string, args ...any) (*Solutions, error) {
 // QueryContext executes a prolog query and returns *Solutions with context.
 func (i *Interpreter) QueryContext(ctx context.Context, query string, args ...any) (*Solutions, error) {
 	p := engine.NewParser(&i.VM, strings.NewReader(query))
-	if err := p.SetPlaceholder(engine.NewAtom("?"), args...); err != nil {
-		return nil, err
+	err2 := p.SetPlaceholder(engine.NewAtom("?"), args...)
+	if err2 != nil {
+		return nil, err2
 	}
 
 	t, err := p.Term()
@@ -201,11 +202,12 @@ func (i *Interpreter) QueryContext(ctx context.Context, query string, args ...an
 		if !<-more {
 			return
 		}
-		if _, err := engine.Call(&i.VM, t, func(env *engine.Env) *engine.Promise {
+		_, err3 := engine.Call(&i.VM, t, func(env *engine.Env) *engine.Promise {
 			next <- env
 			return engine.Bool(!<-more)
-		}, env).Force(ctx); err != nil {
-			sols.err = err
+		}, env).Force(ctx)
+		if err3 != nil {
+			sols.err = err3
 		}
 	}()
 
@@ -228,8 +230,9 @@ func (i *Interpreter) QuerySolutionContext(ctx context.Context, query string, ar
 	}
 
 	if !sols.Next() {
-		if err := sols.Err(); err != nil {
-			return &Solution{err: err}
+		err2 := sols.Err()
+		if err2 != nil {
+			return &Solution{err: err2}
 		}
 		return &Solution{err: ErrNoSolutions}
 	}
@@ -240,5 +243,5 @@ func (i *Interpreter) QuerySolutionContext(ctx context.Context, query string, ar
 type defaultFS struct{}
 
 func (d defaultFS) Open(name string) (fs.File, error) {
-	return os.Open(name)
+	return os.Open(name) // #nosec G304 -- consult/ensure_loaded open user-chosen paths by design; sandbox via Interpreter.FS
 }

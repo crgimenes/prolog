@@ -63,7 +63,8 @@ func (s *Solutions) Scan(dest any) error {
 		for i := 0; i < t.NumField(); i++ {
 			f := t.Field(i)
 			name := f.Name
-			if alias, ok := f.Tag.Lookup("prolog"); ok {
+			alias, ok := f.Tag.Lookup("prolog")
+			if ok {
 				name = alias
 			}
 			fields[name] = o.Field(i).Addr().Interface()
@@ -76,7 +77,8 @@ func (s *Solutions) Scan(dest any) error {
 				continue
 			}
 
-			if err := convertAssign(f, s.vm, v.Variable, s.env); err != nil {
+			err := convertAssign(f, s.vm, v.Variable, s.env)
+			if err != nil {
 				return err
 			}
 		}
@@ -89,7 +91,8 @@ func (s *Solutions) Scan(dest any) error {
 
 		for _, v := range s.vars {
 			dest := reflect.New(t.Elem())
-			if err := convertAssign(dest.Interface(), s.vm, v.Variable, s.env); err != nil {
+			err := convertAssign(dest.Interface(), s.vm, v.Variable, s.env)
+			if err != nil {
 				return err
 			}
 			o.SetMapIndex(reflect.ValueOf(v.Name.String()), dest.Elem())
@@ -109,19 +112,19 @@ func convertAssign(dest any, vm *engine.VM, t engine.Term, env *engine.Env) erro
 	case *string:
 		return convertAssignString(d, t, env)
 	case *int:
-		return convertAssignInt(d, t, env)
+		return convertAssignInteger(d, t, env)
 	case *int8:
-		return convertAssignInt8(d, t, env)
+		return convertAssignInteger(d, t, env)
 	case *int16:
-		return convertAssignInt16(d, t, env)
+		return convertAssignInteger(d, t, env)
 	case *int32:
-		return convertAssignInt32(d, t, env)
+		return convertAssignInteger(d, t, env)
 	case *int64:
-		return convertAssignInt64(d, t, env)
+		return convertAssignInteger(d, t, env)
 	case *float32:
-		return convertAssignFloat32(d, t, env)
+		return convertAssignFloat(d, t, env)
 	case *float64:
-		return convertAssignFloat64(d, t, env)
+		return convertAssignFloat(d, t, env)
 	case Scanner:
 		return d.Scan(vm, t, env)
 	default:
@@ -152,11 +155,13 @@ func convertAssignAny(d *any, vm *engine.VM, t engine.Term, env *engine.Env) err
 		iter := engine.ListIterator{List: t, Env: env}
 		for iter.Next() {
 			s = append(s, nil)
-			if err := convertAssign(&s[len(s)-1], vm, iter.Current(), env); err != nil {
+			err := convertAssign(&s[len(s)-1], vm, iter.Current(), env)
+			if err != nil {
 				return err
 			}
 		}
-		if err := iter.Err(); err != nil {
+		err := iter.Err()
+		if err != nil {
 			return errConversion
 		}
 		*d = s
@@ -176,70 +181,28 @@ func convertAssignString(d *string, t engine.Term, env *engine.Env) error {
 	}
 }
 
-func convertAssignInt(d *int, t engine.Term, env *engine.Env) error {
+// convertAssignInteger converts a Prolog integer into any Go signed integer
+// type. A value outside the destination's range is a conversion error, not a
+// silent wrap-around.
+func convertAssignInteger[D ~int | ~int8 | ~int16 | ~int32 | ~int64](d *D, t engine.Term, env *engine.Env) error {
 	switch t := env.Resolve(t).(type) {
 	case engine.Integer:
-		*d = int(t)
+		if int64(D(t)) != int64(t) {
+			return errConversion
+		}
+		*d = D(t)
 		return nil
 	default:
 		return errConversion
 	}
 }
 
-func convertAssignInt8(d *int8, t engine.Term, env *engine.Env) error {
-	switch t := env.Resolve(t).(type) {
-	case engine.Integer:
-		*d = int8(t)
-		return nil
-	default:
-		return errConversion
-	}
-}
-
-func convertAssignInt16(d *int16, t engine.Term, env *engine.Env) error {
-	switch t := env.Resolve(t).(type) {
-	case engine.Integer:
-		*d = int16(t)
-		return nil
-	default:
-		return errConversion
-	}
-}
-
-func convertAssignInt32(d *int32, t engine.Term, env *engine.Env) error {
-	switch t := env.Resolve(t).(type) {
-	case engine.Integer:
-		*d = int32(t)
-		return nil
-	default:
-		return errConversion
-	}
-}
-
-func convertAssignInt64(d *int64, t engine.Term, env *engine.Env) error {
-	switch t := env.Resolve(t).(type) {
-	case engine.Integer:
-		*d = int64(t)
-		return nil
-	default:
-		return errConversion
-	}
-}
-
-func convertAssignFloat32(d *float32, t engine.Term, env *engine.Env) error {
+// convertAssignFloat converts a Prolog float into a Go float type; narrowing
+// to float32 keeps the nearest representable value, like any Go conversion.
+func convertAssignFloat[D ~float32 | ~float64](d *D, t engine.Term, env *engine.Env) error {
 	switch t := env.Resolve(t).(type) {
 	case engine.Float:
-		*d = float32(t)
-		return nil
-	default:
-		return errConversion
-	}
-}
-
-func convertAssignFloat64(d *float64, t engine.Term, env *engine.Env) error {
-	switch t := env.Resolve(t).(type) {
-	case engine.Float:
-		*d = float64(t)
+		*d = D(t)
 		return nil
 	default:
 		return errConversion
@@ -249,7 +212,8 @@ func convertAssignFloat64(d *float64, t engine.Term, env *engine.Env) error {
 func convertAssignSlice(d any, vm *engine.VM, t engine.Term, env *engine.Env) error {
 	v := reflect.ValueOf(d).Elem()
 
-	if k := v.Kind(); k != reflect.Slice {
+	k := v.Kind()
+	if k != reflect.Slice {
 		return errConversion
 	}
 
@@ -260,11 +224,13 @@ func convertAssignSlice(d any, vm *engine.VM, t engine.Term, env *engine.Env) er
 	for iter.Next() {
 		v = reflect.Append(v, reflect.Zero(v.Type().Elem()))
 		dest := v.Index(v.Len() - 1).Addr().Interface()
-		if err := convertAssign(dest, vm, iter.Current(), env); err != nil {
+		err := convertAssign(dest, vm, iter.Current(), env)
+		if err != nil {
 			return err
 		}
 	}
-	if err := iter.Err(); err != nil {
+	err := iter.Err()
+	if err != nil {
 		return errConversion
 	}
 
@@ -286,7 +252,8 @@ type Solution struct {
 
 // Scan copies the variable values of the solution into the specified struct/map.
 func (s *Solution) Scan(dest any) error {
-	if err := s.err; err != nil {
+	err := s.err
+	if err != nil {
 		return err
 	}
 	return s.sols.Scan(dest)

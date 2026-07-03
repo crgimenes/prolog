@@ -19,19 +19,22 @@ func (e *discontiguousError) Error() string {
 // Compile compiles the Prolog text and updates the DB accordingly.
 func (vm *VM) Compile(ctx context.Context, s string, args ...any) error {
 	var t text
-	if err := vm.compile(ctx, &t, s, args...); err != nil {
+	err := vm.compile(ctx, &t, s, args...)
+	if err != nil {
 		return err
 	}
 
-	if err := t.flush(); err != nil {
-		return err
+	err2 := t.flush()
+	if err2 != nil {
+		return err2
 	}
 
 	if vm.procedures == nil {
 		vm.procedures = map[procedureIndicator]procedure{}
 	}
 	for pi, u := range t.clauses {
-		if existing, ok := vm.procedures[pi].(*userDefined); ok && existing.multifile && u.multifile {
+		existing, ok := vm.procedures[pi].(*userDefined)
+		if ok && existing.multifile && u.multifile {
 			existing.clauses = append(existing.clauses, u.clauses...)
 			continue
 		}
@@ -62,14 +65,16 @@ func Consult(vm *VM, files Term, k Cont, env *Env) *Promise {
 	for iter.Next() {
 		filenames = append(filenames, iter.Current())
 	}
-	if err := iter.Err(); err != nil {
+	err := iter.Err()
+	if err != nil {
 		filenames = []Term{files}
 	}
 
 	return Delay(func(ctx context.Context) *Promise {
 		for _, filename := range filenames {
-			if err := vm.ensureLoaded(ctx, filename, env); err != nil {
-				return Error(err)
+			err2 := vm.ensureLoaded(ctx, filename, env)
+			if err2 != nil {
+				return Error(err2)
 			}
 		}
 
@@ -84,7 +89,8 @@ func (vm *VM) compile(ctx context.Context, text *text, s string, args ...any) er
 
 	s = ignoreShebangLine(s)
 	p := NewParser(vm, strings.NewReader(s))
-	if err := p.SetPlaceholder(NewAtom("?"), args...); err != nil {
+	err := p.SetPlaceholder(NewAtom("?"), args...)
+	if err != nil {
 		return err
 	}
 
@@ -106,20 +112,23 @@ func (vm *VM) compile(ctx context.Context, text *text, s string, args ...any) er
 		}
 		switch pi {
 		case procedureIndicator{name: atomIf, arity: 1}: // Directive
-			if err := vm.directive(ctx, text, arg(0)); err != nil {
-				return err
+			err2 := vm.directive(ctx, text, arg(0))
+			if err2 != nil {
+				return err2
 			}
 			continue
 		case procedureIndicator{name: atomIf, arity: 2}: // Rule
-			pi, arg, err = piArg(arg(0), nil)
+			// Only the head's indicator matters below; the args are not reused.
+			pi, _, err = piArg(arg(0), nil)
 			if err != nil {
 				return err
 			}
 			fallthrough
 		default:
 			if len(text.buf) > 0 && pi != text.buf[0].pi {
-				if err := text.flush(); err != nil {
-					return err
+				err2 := text.flush()
+				if err2 != nil {
+					return err2
 				}
 			}
 
@@ -135,7 +144,8 @@ func (vm *VM) compile(ctx context.Context, text *text, s string, args ...any) er
 }
 
 func (vm *VM) directive(ctx context.Context, text *text, d Term) error {
-	if err := text.flush(); err != nil {
+	err := text.flush()
+	if err != nil {
 		return err
 	}
 
@@ -189,16 +199,18 @@ func (vm *VM) ensureLoaded(ctx context.Context, file Term, env *Env) error {
 	if vm.loaded == nil {
 		vm.loaded = map[string]struct{}{}
 	}
-	if _, ok := vm.loaded[f]; ok {
+	_, ok := vm.loaded[f]
+	if ok {
 		return nil
 	}
 
 	// It's too early to say it's fully loaded. Yet this avoids recursive load of the same file.
 	vm.loaded[f] = struct{}{}
 
-	if err := vm.Compile(ctx, string(b)); err != nil {
+	err2 := vm.Compile(ctx, string(b))
+	if err2 != nil {
 		delete(vm.loaded, f) // It wasn't fully loaded after all.
-		return err
+		return err2
 	}
 
 	return nil

@@ -36,8 +36,9 @@ func main() {
 	})
 
 	// Treat a string argument as an atom.
-	if err := p.Exec(`:- set_prolog_flag(double_quotes, atom).`); err != nil {
-		panic(err)
+	err2 := p.Exec(`:- set_prolog_flag(double_quotes, atom).`)
+	if err2 != nil {
+		panic(err2)
 	}
 
 	// Query with the custom predicate get_status/2 but parameterize the first argument.
@@ -46,8 +47,9 @@ func main() {
 		panic(err)
 	}
 	defer func() {
-		if err := sols.Close(); err != nil {
-			panic(err)
+		err3 := sols.Close()
+		if err3 != nil {
+			panic(err3)
 		}
 	}()
 
@@ -58,8 +60,9 @@ func main() {
 	var s struct {
 		Status int
 	}
-	if err := sols.Scan(&s); err != nil {
-		panic(err)
+	err3 := sols.Scan(&s)
+	if err3 != nil {
+		panic(err3)
 	}
 
 	fmt.Printf("%+v\n", s)

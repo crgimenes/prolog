@@ -235,7 +235,8 @@ func (vm *VM) exec(pc bytecode, vars []Variable, cont Cont, args []Term, astack 
 		case opPop:
 			args, astack = astack[len(astack)-1], astack[:len(astack)-1]
 		case opEnter:
-			break
+			// No work: opEnter only marks the head/body boundary; the loop
+			// header already consumed the instruction.
 		case opCall:
 			pi := operand.(procedureIndicator)
 			return vm.Arrive(pi.name, args, func(env *Env) *Promise {

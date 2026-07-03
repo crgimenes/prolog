@@ -29,8 +29,18 @@ type Parser struct {
 	placeholder Atom
 	args        []Term
 
-	buf tokenRingBuffer
+	buf   tokenRingBuffer
+	depth int
 }
+
+// maxTermDepth bounds the parser's recursion (term → term0 → list/arg → term).
+// A pathological input such as an unterminated list would otherwise recurse
+// until the goroutine stack overflows — a fatal error that recover() cannot
+// catch, so an untrusted program could take the host down. The limit is far
+// deeper than any hand-written term and still leaves ample stack headroom.
+const maxTermDepth = 4096
+
+var errTooDeep = errors.New("term nesting too deep")
 
 // ParsedVariable is a set of information regarding a variable in a parsed term.
 type ParsedVariable struct {
@@ -204,7 +214,8 @@ func (p *Parser) number() (Number, error) {
 
 // More checks if the parser has more tokens to read.
 func (p *Parser) More() bool {
-	if _, err := p.next(); err != nil {
+	_, err := p.next()
+	if err != nil {
 		return false
 	}
 	p.backup()
@@ -346,6 +357,12 @@ func (d doubleQuotes) String() string {
 
 // Loosely based on Pratt parser explained in this article: https://matklad.github.io/2020/04/13/simple-but-powerful-pratt-parsing.html
 func (p *Parser) term(maxPriority Integer) (Term, error) {
+	p.depth++
+	defer func() { p.depth-- }()
+	if p.depth > maxTermDepth {
+		return nil, errTooDeep
+	}
+
 	var lhs Term
 	switch op, err := p.prefix(maxPriority); err {
 	case nil:
@@ -419,7 +436,8 @@ func (p *Parser) prefix(maxPriority Integer) (operator, error) {
 		p.backup()
 	}
 
-	if op := p.operators[a][operatorClassPrefix]; op != (operator{}) && op.priority <= maxPriority {
+	op := p.operators[a][operatorClassPrefix]
+	if op != (operator{}) && op.priority <= maxPriority {
 		return op, nil
 	}
 
@@ -433,16 +451,18 @@ func (p *Parser) infix(maxPriority Integer) (operator, error) {
 		return operator{}, errNoOp
 	}
 
-	if op := p.operators[a][operatorClassInfix]; op != (operator{}) {
+	op := p.operators[a][operatorClassInfix]
+	if op != (operator{}) {
 		l, _ := op.bindingPriorities()
 		if l <= maxPriority {
 			return op, nil
 		}
 	}
-	if op := p.operators[a][operatorClassPostfix]; op != (operator{}) {
-		l, _ := op.bindingPriorities()
+	op2 := p.operators[a][operatorClassPostfix]
+	if op2 != (operator{}) {
+		l, _ := op2.bindingPriorities()
 		if l <= maxPriority {
-			return op, nil
+			return op2, nil
 		}
 	}
 
@@ -451,7 +471,8 @@ func (p *Parser) infix(maxPriority Integer) (operator, error) {
 }
 
 func (p *Parser) op(maxPriority Integer) (Atom, error) {
-	if a, err := p.atom(); err == nil {
+	a, err2 := p.atom()
+	if err2 == nil {
 		switch a {
 		case atomEmptyList:
 			p.backup()
@@ -502,7 +523,8 @@ func (p *Parser) term0(maxPriority Integer) (Term, error) {
 	case tokenVariable:
 		return p.variable(t.val)
 	case tokenOpenList:
-		if t, _ := p.next(); t.kind == tokenCloseList {
+		t2, _ := p.next()
+		if t2.kind == tokenCloseList {
 			p.backup()
 			p.backup()
 			break
@@ -510,7 +532,8 @@ func (p *Parser) term0(maxPriority Integer) (Term, error) {
 		p.backup()
 		return p.list()
 	case tokenOpenCurly:
-		if t, _ := p.next(); t.kind == tokenCloseCurly {
+		t2, _ := p.next()
+		if t2.kind == tokenCloseCurly {
 			p.backup()
 			p.backup()
 			break
@@ -525,7 +548,6 @@ func (p *Parser) term0(maxPriority Integer) (Term, error) {
 			return CodeList(unDoubleQuote(t.val)), nil
 		default:
 			p.backup()
-			break
 		}
 	default:
 		p.backup()
@@ -561,7 +583,8 @@ func (p *Parser) term0Atom(maxPriority Integer) (Term, error) {
 	}
 
 	// 6.3.1.3 An atom which is an operator shall not be the immediate operand (3.120) of an operator.
-	if t, ok := t.(Atom); ok && maxPriority < 1201 && p.operators.defined(t) {
+	t2, ok := t.(Atom)
+	if ok && maxPriority < 1201 && p.operators.defined(t2) {
 		p.backup()
 		return nil, errExpectation
 	}
@@ -597,7 +620,8 @@ func (p *Parser) openClose() (Term, error) {
 	if err != nil {
 		return nil, err
 	}
-	if t, _ := p.next(); t.kind != tokenClose {
+	t2, _ := p.next()
+	if t2.kind != tokenClose {
 		p.backup()
 		return nil, errExpectation
 	}
@@ -605,7 +629,8 @@ func (p *Parser) openClose() (Term, error) {
 }
 
 func (p *Parser) atom() (Atom, error) {
-	if a, err := p.name(); err == nil {
+	a, err2 := p.name()
+	if err2 == nil {
 		return a, nil
 	}
 
@@ -715,7 +740,8 @@ func (p *Parser) curlyBracketedTerm() (Term, error) {
 		return nil, err
 	}
 
-	if t, _ := p.next(); t.kind != tokenCloseCurly {
+	t2, _ := p.next()
+	if t2.kind != tokenCloseCurly {
 		p.backup()
 		return nil, errExpectation
 	}
@@ -753,7 +779,8 @@ func (p *Parser) functionalNotation(functor Atom) (Term, error) {
 }
 
 func (p *Parser) arg() (Term, error) {
-	if arg, err := p.atom(); err == nil {
+	arg, err := p.atom()
+	if err == nil {
 		if p.operators.defined(arg) {
 			// Check if this atom is not followed by its own arguments.
 			switch t, _ := p.next(); t.kind {

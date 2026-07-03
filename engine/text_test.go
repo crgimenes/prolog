@@ -498,7 +498,8 @@ func TestVM_Consult(t *testing.T) {
 			}
 			ok, err := Consult(&vm, tt.files, Success, nil).Force(context.Background())
 			assert.Equal(t, tt.ok, ok)
-			if e, ok := tt.err.(Exception); ok {
+			e, ok2 := tt.err.(Exception)
+			if ok2 {
 				_, ok := NewEnv().Unify(e.Term(), err.(Exception).Term())
 				assert.True(t, ok)
 			} else {

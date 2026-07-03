@@ -1,6 +1,6 @@
-*Atention*: This project is a fork of [ichiban/prolog](https://github.com/ichiban/prolog) and is not affiliated with the original project.
+*Attention*: This project started as a fork of [ichiban/prolog](https://github.com/ichiban/prolog) and is not affiliated with the original project.
 
-Please consider contributing to the original project if you want to contribute to the development of this library. This fork is intended for experimentation and may contain breaking changes without notice.
+It now deliberately diverges from upstream and is developed independently — it is the embeddable Prolog used across my own projects (for example as the semantics oracle in [filo](https://github.com/crgimenes/filo)'s conformance tests). It may contain breaking changes without notice.
 
 ---
 

@@ -23,7 +23,6 @@ type WriteOptions struct {
 	ops         operators
 	priority    Integer
 	visited     map[termID]struct{}
-	prefixMinus bool
 	left, right operator
 	maxDepth    Integer
 }

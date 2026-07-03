@@ -27,7 +27,8 @@ func WriteCompound(w io.Writer, c Compound, opts *WriteOptions, env *Env) error 
 	opts = opts.withVisited(c)
 
 	a := env.Resolve(c.Arg(0))
-	if n, ok := a.(Integer); ok && opts.numberVars && c.Functor() == atomVar && c.Arity() == 1 && n >= 0 {
+	n, ok2 := a.(Integer)
+	if ok2 && opts.numberVars && c.Functor() == atomVar && c.Arity() == 1 && n >= 0 {
 		return writeCompoundNumberVars(w, n)
 	}
 
@@ -55,7 +56,8 @@ func WriteCompound(w io.Writer, c Compound, opts *WriteOptions, env *Env) error 
 }
 
 func writeCompoundVisit(w io.Writer, c Compound, opts *WriteOptions) (bool, error) {
-	if _, ok := opts.visited[id(c)]; ok {
+	_, ok := opts.visited[id(c)]
+	if ok {
 		err := atomElipsis.WriteTerm(w, opts, nil)
 		return true, err
 	}
@@ -89,10 +91,12 @@ func writeCompoundList(w io.Writer, c Compound, opts *WriteOptions, env *Env) er
 		_, _ = fmt.Fprint(&ew, ",")
 		_ = iter.Current().WriteTerm(&ew, opts, env)
 	}
-	if err := iter.Err(); err != nil {
+	err := iter.Err()
+	if err != nil {
 		_, _ = fmt.Fprint(&ew, "|")
 		s := iter.Suffix()
-		if l, ok := iter.Suffix().(Compound); ok && l.Functor() == atomDot && l.Arity() == 2 {
+		l, ok := iter.Suffix().(Compound)
+		if ok && l.Functor() == atomDot && l.Arity() == 2 {
 			_ = atomElipsis.WriteTerm(&ew, opts, nil)
 		} else {
 			_ = s.WriteTerm(&ew, opts, env)
@@ -270,13 +274,15 @@ func CompareCompound(c Compound, t Term, env *Env) int {
 			return -1
 		}
 
-		if o := c.Functor().Compare(t.Functor(), env); o != 0 {
+		o := c.Functor().Compare(t.Functor(), env)
+		if o != 0 {
 			return o
 		}
 
 		for i := 0; i < c.Arity(); i++ {
-			if o := c.Arg(i).Compare(t.Arg(i), env); o != 0 {
-				return o
+			o2 := c.Arg(i).Compare(t.Arg(i), env)
+			if o2 != 0 {
+				return o2
 			}
 		}
 		return 0
@@ -427,7 +433,8 @@ func (p *partial) termID() termID { // The underlying compound might not be comp
 
 func (p *partial) Arg(n int) Term {
 	t := p.Compound.Arg(n)
-	if c := p.Compound; c.Functor() == atomDot && c.Arity() == 2 && n == 1 {
+	c := p.Compound
+	if c.Functor() == atomDot && c.Arity() == 2 && n == 1 {
 		if t == atomEmptyList {
 			t = *p.tail
 		} else {
@@ -522,7 +529,7 @@ func (c charList) Arg(n int) Term {
 	var t Term
 	switch n {
 	case 0:
-		t = Atom(r)
+		t = Atom(r) // #nosec G115 -- DecodeRuneInString yields a non-negative code point
 	case 1:
 		if i == len(c) {
 			t = atomEmptyList

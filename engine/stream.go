@@ -88,7 +88,7 @@ func (s *Stream) WriteTerm(w io.Writer, _ *WriteOptions, _ *Env) error {
 // Compare compares the Stream with a Term.
 func (s *Stream) Compare(t Term, env *Env) int {
 	return CompareAtomic[*Stream](s, t, func(s *Stream, t *Stream) int {
-		switch x, y := uintptr(unsafe.Pointer(s)), uintptr(unsafe.Pointer(t)); {
+		switch x, y := uintptr(unsafe.Pointer(s)), uintptr(unsafe.Pointer(t)); { // #nosec G103 -- pointer identity only, for the ISO standard order of terms
 		case x > y:
 			return 1
 		case x < y:
@@ -105,12 +105,14 @@ func (s *Stream) Name() string {
 		Name() string
 	}
 
-	if f, ok := s.source.(namer); ok {
+	f, ok := s.source.(namer)
+	if ok {
 		return f.Name()
 	}
 
-	if f, ok := s.sink.(namer); ok {
-		return f.Name()
+	f2, ok2 := s.sink.(namer)
+	if ok2 {
+		return f2.Name()
 	}
 
 	return ""
@@ -119,8 +121,9 @@ func (s *Stream) Name() string {
 // ReadByte reads a byte from the underlying source.
 // It throws an error if the stream is not an input binary stream.
 func (s *Stream) ReadByte() (byte, error) {
-	if err := s.initRead(); err != nil {
-		return 0, err
+	err2 := s.initRead()
+	if err2 != nil {
+		return 0, err2
 	}
 
 	if s.streamType != streamTypeBinary {
@@ -136,8 +139,9 @@ func (s *Stream) ReadByte() (byte, error) {
 }
 
 func (s *Stream) UnreadByte() error {
-	if err := s.initRead(); err != nil {
-		return err
+	err2 := s.initRead()
+	if err2 != nil {
+		return err2
 	}
 
 	if s.streamType != streamTypeBinary {
@@ -155,8 +159,9 @@ func (s *Stream) UnreadByte() error {
 // ReadRune reads the next rune from the underlying source.
 // It throws an error if the stream is not an input text stream.
 func (s *Stream) ReadRune() (r rune, size int, err error) {
-	if err := s.initRead(); err != nil {
-		return 0, 0, err
+	err2 := s.initRead()
+	if err2 != nil {
+		return 0, 0, err2
 	}
 
 	if s.streamType != streamTypeText {
@@ -171,8 +176,9 @@ func (s *Stream) ReadRune() (r rune, size int, err error) {
 }
 
 func (s *Stream) UnreadRune() error {
-	if err := s.initRead(); err != nil {
-		return err
+	err2 := s.initRead()
+	if err2 != nil {
+		return err2
 	}
 
 	if s.streamType != streamTypeText {
@@ -262,14 +268,18 @@ func (s *Stream) Flush() error {
 
 // Close closes the underlying source/sink.
 func (s *Stream) Close() error {
-	if c, ok := s.source.(io.Closer); ok {
-		if err := c.Close(); err != nil {
+	c, ok := s.source.(io.Closer)
+	if ok {
+		err := c.Close()
+		if err != nil {
 			return err
 		}
 	}
 
-	if c, ok := s.sink.(io.Closer); ok {
-		if err := c.Close(); err != nil {
+	c2, ok2 := s.sink.(io.Closer)
+	if ok2 {
+		err := c2.Close()
+		if err != nil {
 			return err
 		}
 	}
@@ -346,7 +356,8 @@ func fileSize(r io.Reader) int64 {
 func (s *Stream) properties() []Term {
 	ps := make([]Term, 0, 9)
 
-	if n := s.Name(); n != "" {
+	n := s.Name()
+	if n != "" {
 		ps = append(ps, atomFileName.Apply(NewAtom(n)))
 	}
 

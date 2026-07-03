@@ -12,7 +12,8 @@ var hello string
 
 func main() {
 	p := prolog.New(nil, os.Stdout)
-	if err := p.Exec(hello); err != nil {
+	err := p.Exec(hello)
+	if err != nil {
 		panic(err)
 	}
 }

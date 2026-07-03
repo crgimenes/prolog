@@ -9,7 +9,7 @@ import (
 // http://www.cse.unsw.edu.au/~billw/dictionaries/prolog/cut.html
 func main() {
 	p := prolog.New(nil, nil)
-	if err := p.Exec(`
+	err := p.Exec(`
 teaches(dr_fred, history).
 teaches(dr_fred, english).
 teaches(dr_fred, drama).
@@ -19,7 +19,8 @@ studies(alice, english).
 studies(angus, english).
 studies(amelia, drama).
 studies(alex, physics).
-`); err != nil {
+`)
+	if err != nil {
 		panic(err)
 	}
 
@@ -41,15 +42,17 @@ studies(alex, physics).
 				Course  string
 				Student string
 			}
-			if err := sols.Scan(&s); err != nil {
-				panic(err)
+			err2 := sols.Scan(&s)
+			if err2 != nil {
+				panic(err2)
 			}
 			fmt.Printf("\t%+v\n", s)
 		}
 
 		fmt.Printf("\n")
-		if err := sols.Close(); err != nil {
-			panic(err)
+		err2 := sols.Close()
+		if err2 != nil {
+			panic(err2)
 		}
 	}
 }

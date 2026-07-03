@@ -36,16 +36,17 @@ func (cs clauses) call(vm *VM, args []Term, k Cont, env *Env) *Promise {
 
 func compile(t Term, env *Env) (clauses, error) {
 	t = env.Resolve(t)
-	if t, ok := t.(Compound); ok && t.Functor() == atomIf && t.Arity() == 2 {
+	t2, ok := t.(Compound)
+	if ok && t2.Functor() == atomIf && t2.Arity() == 2 {
 		var cs clauses
-		head, body := t.Arg(0), t.Arg(1)
+		head, body := t2.Arg(0), t2.Arg(1)
 		iter := altIterator{Alt: body, Env: env}
 		for iter.Next() {
 			c, err := compileClause(head, iter.Current(), env)
 			if err != nil {
 				return nil, typeError(validTypeCallable, body, env)
 			}
-			c.raw = t
+			c.raw = t2
 			cs = append(cs, c)
 		}
 		return cs, nil
@@ -67,7 +68,8 @@ func compileClause(head Term, body Term, env *Env) (clause, error) {
 	var c clause
 	c.compileHead(head, env)
 	if body != nil {
-		if err := c.compileBody(body, env); err != nil {
+		err := c.compileBody(body, env)
+		if err != nil {
 			return c, typeError(validTypeCallable, body, env)
 		}
 	}
@@ -91,7 +93,8 @@ func (c *clause) compileBody(body Term, env *Env) error {
 	c.bytecode = append(c.bytecode, instruction{opcode: opEnter})
 	iter := seqIterator{Seq: body, Env: env}
 	for iter.Next() {
-		if err := c.compilePred(iter.Current(), env); err != nil {
+		err := c.compilePred(iter.Current(), env)
+		if err != nil {
 			return err
 		}
 	}

@@ -18,19 +18,21 @@ func main() {
 	p.Register3(engine.NewAtom("op"), engine.Op)
 
 	// Then, define the infix operator with priority 1200 and specifier XFX.
-	if err := p.Exec(`:-(op(1200, xfx, :-)).`); err != nil {
-		panic(err)
+	err2 := p.Exec(`:-(op(1200, xfx, :-)).`)
+	if err2 != nil {
+		panic(err2)
 	}
 
 	// You may also want to register other predicates or define other operators to match your use case.
-	// You can use p.Register0~5 to register any builtin/custom predicates of respective arity.
+	// You can use p.Register0~8 to register any builtin/custom predicates of respective arity.
 
 	// Now you can load a Prolog program with infix `:-`.
-	if err := p.Exec(`
+	err3 := p.Exec(`
 		human(socrates).
 		mortal(X) :- human(X).
-	`); err != nil {
-		panic(err)
+	`)
+	if err3 != nil {
+		panic(err3)
 	}
 
 	// Run the Prolog program.
@@ -38,14 +40,15 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer sols.Close()
+	defer func() { _ = sols.Close() }()
 
 	for sols.Next() {
 		var s struct {
 			Who string
 		}
-		if err := sols.Scan(&s); err != nil {
-			panic(err)
+		err4 := sols.Scan(&s)
+		if err4 != nil {
+			panic(err4)
 		}
 		fmt.Printf("Who = %s\n", s.Who)
 		// ==> Who = socrates

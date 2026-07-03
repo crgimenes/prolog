@@ -220,8 +220,9 @@ type Atom uint64
 // NewAtom interns the given string and returns an Atom.
 func NewAtom(name string) Atom {
 	// A one-char atom is just a rune.
-	if r, n := utf8.DecodeLastRuneInString(name); r != utf8.RuneError && n == len(name) {
-		return Atom(r)
+	r, n := utf8.DecodeLastRuneInString(name)
+	if r != utf8.RuneError && n == len(name) {
+		return Atom(r) // #nosec G115 -- DecodeLastRuneInString yields a non-negative code point
 	}
 
 	atomTable.Lock()

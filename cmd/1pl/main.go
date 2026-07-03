@@ -14,7 +14,7 @@ import (
 	"sort"
 	"strings"
 
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 
 	"github.com/crgimenes/prolog"
 	"github.com/crgimenes/prolog/engine"
@@ -36,24 +36,22 @@ var version = func() string {
 }()
 
 func main() {
-	var verbose bool
-	flag.BoolVar(&verbose, "v", false, `verbose`)
 	flag.Parse()
 
-	fmt.Printf(`Top level for ichiban/prolog %s
+	fmt.Printf(`Top level for crgimenes/prolog %s
 This is for testing purposes only!
 See https://github.com/crgimenes/prolog for more details.
 Type Ctrl-C or 'halt.' to exit.
 `, version)
 
 	halt := engine.Halt
-	if terminal.IsTerminal(0) {
-		oldState, err := terminal.MakeRaw(0)
+	if term.IsTerminal(0) {
+		oldState, err := term.MakeRaw(0)
 		if err != nil {
 			log.Panicf("failed to enter raw mode: %v", err)
 		}
 		restore := func() {
-			_ = terminal.Restore(0, oldState)
+			_ = term.Restore(0, oldState)
 		}
 		defer restore()
 
@@ -63,7 +61,7 @@ Type Ctrl-C or 'halt.' to exit.
 		}
 	}
 
-	t := terminal.NewTerminal(os.Stdin, prompt)
+	t := term.NewTerminal(os.Stdin, prompt)
 	defer fmt.Printf("\r\n")
 
 	log.SetOutput(t)
@@ -78,7 +76,8 @@ Type Ctrl-C or 'halt.' to exit.
 	}
 
 	// Consult arguments.
-	if err := i.QuerySolution(`findall(F, (member(X, ?), atom_chars(F, X)), Fs), consult(Fs).`, flag.Args()).Err(); err != nil {
+	err := i.QuerySolution(`findall(F, (member(X, ?), atom_chars(F, X)), Fs), consult(Fs).`, flag.Args()).Err()
+	if err != nil {
 		log.Panic(err)
 	}
 
@@ -88,9 +87,10 @@ Type Ctrl-C or 'halt.' to exit.
 	var buf strings.Builder
 	keys := bufio.NewReader(os.Stdin)
 	for {
-		switch err := handleLine(ctx, &buf, i, t, keys); err {
+		err := handleLine(ctx, &buf, i, t, keys)
+		switch err {
 		case nil:
-			break
+			// Keep reading.
 		case io.EOF:
 			return
 		default:
@@ -99,7 +99,7 @@ Type Ctrl-C or 'halt.' to exit.
 	}
 }
 
-func handleLine(ctx context.Context, buf *strings.Builder, p *prolog.Interpreter, t *terminal.Terminal, keys *bufio.Reader) (err error) {
+func handleLine(ctx context.Context, buf *strings.Builder, p *prolog.Interpreter, t *term.Terminal, keys *bufio.Reader) (err error) {
 	line, err := t.ReadLine()
 	if err != nil {
 		return err
@@ -144,8 +144,9 @@ func handleLine(ctx context.Context, buf *strings.Builder, p *prolog.Interpreter
 			sort.Strings(ls)
 			_, _ = fmt.Fprint(&buf, strings.Join(ls, ",\n"))
 		}
-		if _, err := t.Write(buf.Bytes()); err != nil {
-			return err
+		_, err2 := t.Write(buf.Bytes())
+		if err2 != nil {
+			return err2
 		}
 
 		r, _, err := keys.ReadRune()
@@ -155,22 +156,25 @@ func handleLine(ctx context.Context, buf *strings.Builder, p *prolog.Interpreter
 		if r != ';' {
 			r = '.'
 		}
-		if _, err := fmt.Fprintf(t, "%s\n", string(r)); err != nil {
-			return err
+		_, err3 := fmt.Fprintf(t, "%s\n", string(r))
+		if err3 != nil {
+			return err3
 		}
 		if r == '.' {
 			break
 		}
 	}
 
-	if err := sols.Err(); err != nil {
-		log.Print(err)
+	err2 := sols.Err()
+	if err2 != nil {
+		log.Print(err2)
 		return nil
 	}
 
 	if !exists {
-		if _, err := fmt.Fprintf(t, "%t.\n", false); err != nil {
-			return err
+		_, err3 := fmt.Fprintf(t, "%t.\n", false)
+		if err3 != nil {
+			return err3
 		}
 	}
 
@@ -178,7 +182,7 @@ func handleLine(ctx context.Context, buf *strings.Builder, p *prolog.Interpreter
 }
 
 type userInput struct {
-	t   *terminal.Terminal
+	t   *term.Terminal
 	buf bytes.Buffer
 }
 

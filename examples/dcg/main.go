@@ -25,7 +25,7 @@ func main() {
 	i := prolog.New(nil, nil)
 
 	// Then, define DCG rules with -->/2.
-	if err := i.Exec(`
+	err2 := i.Exec(`
 :- set_prolog_flag(double_quotes, atom).
 
 sentence --> noun_phrase, verb_phrase.
@@ -39,8 +39,9 @@ noun --> [cat].
 verb --> [runs].
 verb --> [barks].
 verb --> [bites].
-`); err != nil {
-		panic(err)
+`)
+	if err2 != nil {
+		panic(err2)
 	}
 
 	// Finally, query with phrase/2.
@@ -50,8 +51,9 @@ verb --> [bites].
 			panic(err)
 		}
 		defer func() {
-			if err := sols.Close(); err != nil {
-				panic(err)
+			err3 := sols.Close()
+			if err3 != nil {
+				panic(err3)
 			}
 		}()
 
@@ -59,8 +61,9 @@ verb --> [bites].
 			var s struct {
 				Sentence []string
 			}
-			if err := sols.Scan(&s); err != nil {
-				panic(err)
+			err3 := sols.Scan(&s)
+			if err3 != nil {
+				panic(err3)
 			}
 
 			fmt.Printf("%s\n", s.Sentence)
@@ -73,8 +76,9 @@ verb --> [bites].
 		panic(err)
 	}
 	defer func() {
-		if err := sols.Close(); err != nil {
-			panic(err)
+		err3 := sols.Close()
+		if err3 != nil {
+			panic(err3)
 		}
 	}()
 

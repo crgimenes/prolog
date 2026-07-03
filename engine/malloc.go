@@ -27,7 +27,8 @@ func makeSlice(n int) (_ []Term, err error) {
 	}
 
 	defer func() {
-		if r := recover(); r != nil {
+		r := recover()
+		if r != nil {
 			// e.g. "runtime error: makeslice: len out of range"
 			err = errOutOfMemory
 		}
