@@ -3,8 +3,6 @@ package engine
 import (
 	"bytes"
 	"errors"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"io"
 	"io/fs"
 	"os"
@@ -13,7 +11,7 @@ import (
 )
 
 func TestNewInputTextStream(t *testing.T) {
-	assert.Equal(t, &Stream{
+	equal(t, &Stream{
 		source:     os.Stdin,
 		mode:       ioModeRead,
 		eofAction:  eofActionReset,
@@ -22,7 +20,7 @@ func TestNewInputTextStream(t *testing.T) {
 }
 
 func TestNewInputBinaryStream(t *testing.T) {
-	assert.Equal(t, &Stream{
+	equal(t, &Stream{
 		source:     os.Stdin,
 		mode:       ioModeRead,
 		eofAction:  eofActionReset,
@@ -31,7 +29,7 @@ func TestNewInputBinaryStream(t *testing.T) {
 }
 
 func TestNewOutputTextStream(t *testing.T) {
-	assert.Equal(t, &Stream{
+	equal(t, &Stream{
 		sink:       os.Stdout,
 		mode:       ioModeAppend,
 		eofAction:  eofActionReset,
@@ -40,7 +38,7 @@ func TestNewOutputTextStream(t *testing.T) {
 }
 
 func TestNewOutputBinaryStream(t *testing.T) {
-	assert.Equal(t, &Stream{
+	equal(t, &Stream{
 		sink:       os.Stdout,
 		mode:       ioModeAppend,
 		eofAction:  eofActionReset,
@@ -62,8 +60,8 @@ func TestStream_WriteTerm(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
 			buf.Reset()
-			assert.NoError(t, tt.s.WriteTerm(&buf, &tt.opts, nil))
-			assert.Regexp(t, tt.output, buf.String())
+			noError(t, tt.s.WriteTerm(&buf, &tt.opts, nil))
+			matchRegexp(t, tt.output, buf.String())
 		})
 	}
 }
@@ -90,18 +88,17 @@ func TestStream_Compare(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
-			assert.Equal(t, tt.o, tt.s.Compare(tt.t, nil))
+			equal(t, tt.o, tt.s.Compare(tt.t, nil))
 		})
 	}
 }
 
 type mockNamer struct {
-	mock.Mock
+	name string
 }
 
 func (m *mockNamer) Name() string {
-	args := m.Called()
-	return args.String(0)
+	return m.name
 }
 
 func TestStream_Name(t *testing.T) {
@@ -110,86 +107,64 @@ func TestStream_Name(t *testing.T) {
 			mockReader
 			mockNamer
 		}
-		m.mockNamer.On("Name").Return("name").Once()
-		defer m.mockNamer.AssertExpectations(t)
+		m.name = "name"
 
 		s := &Stream{source: &m}
-		assert.Equal(t, "name", s.Name())
+		equal(t, "name", s.Name())
 	})
 
 	t.Run("not namer", func(t *testing.T) {
 		var m mockWriter
 
 		s := &Stream{sink: &m}
-		assert.Equal(t, "", s.Name())
+		equal(t, "", s.Name())
 	})
 }
 
+// mockFile is a configurable os.File-like source. Stat, Read, and Seek each
+// return what the test sets; the zero value is an empty, error-free file.
 type mockFile struct {
-	mock.Mock
+	readData string
+	statErr  error
+	seekErr  error
 }
 
 func (m *mockFile) Stat() (fs.FileInfo, error) {
-	args := m.Called()
-	return args.Get(0).(fs.FileInfo), args.Error(1)
+	return &mockFileInfo{}, m.statErr
 }
 
 func (m *mockFile) Read(p []byte) (int, error) {
-	args := m.Called(p)
-	return args.Int(0), args.Error(1)
+	return copy(p, m.readData), nil
 }
 
 func (m *mockFile) Close() error {
-	args := m.Called()
-	return args.Error(0)
+	return nil
 }
 
 func (m *mockFile) Seek(offset int64, whence int) (int64, error) {
-	args := m.Called(offset, whence)
-	return args.Get(0).(int64), args.Error(1)
+	return 0, m.seekErr
 }
 
-type mockFileInfo struct {
-	mock.Mock
-}
+// mockFileInfo satisfies fs.FileInfo. The stream only ever inspects it after a
+// successful Stat, which the tests here never arrange, so the methods return
+// zero values.
+type mockFileInfo struct{}
 
-func (m *mockFileInfo) Name() string {
-	args := m.Called()
-	return args.String(0)
+func (mockFileInfo) Name() string      { return "" }
+func (mockFileInfo) Size() int64       { return 0 }
+func (mockFileInfo) Mode() fs.FileMode { return 0 }
+func (mockFileInfo) ModTime() time.Time {
+	return time.Time{}
 }
-
-func (m *mockFileInfo) Size() int64 {
-	args := m.Called()
-	return int64(args.Int(0))
-}
-
-func (m *mockFileInfo) Mode() fs.FileMode {
-	args := m.Called()
-	return fs.FileMode(args.Int(0))
-}
-
-func (m *mockFileInfo) ModTime() time.Time {
-	args := m.Called()
-	return args.Get(0).(time.Time)
-}
-
-func (m *mockFileInfo) IsDir() bool {
-	args := m.Called()
-	return args.Bool(0)
-}
-
-func (m *mockFileInfo) Sys() any {
-	args := m.Called()
-	return args.Get(0)
-}
+func (mockFileInfo) IsDir() bool { return false }
+func (mockFileInfo) Sys() any    { return nil }
 
 type mockCloser struct {
-	mock.Mock
+	err error
 }
 
 func (m *mockCloser) Close() error {
-	args := m.Called()
-	return args.Error(0)
+	return m.err
 }
 
 func TestStream_Close(t *testing.T) {
@@ -197,13 +172,12 @@ func TestStream_Close(t *testing.T) {
 		mockReader
 		mockCloser
 	}
-	okCloser.mockCloser.On("Close").Return(nil)
 
 	var ngCloser struct {
 		mockWriter
 		mockCloser
 	}
-	ngCloser.mockCloser.On("Close").Return(errors.New("ng"))
+	ngCloser.mockCloser.err = errors.New("ng")
 
 	var vm VM
 
@@ -228,18 +202,21 @@ func TestStream_Close(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
-			assert.Equal(t, tt.err, tt.s.Close())
+			equal(t, tt.err, tt.s.Close())
 		})
 	}
 }
 
+// mockReader is a configurable io.Reader used to inject read failures. Where a
+// test needs a source that is not a Closer or Seeker, the zero value serves as
+// a bare reader whose Read is never reached.
 type mockReader struct {
-	mock.Mock
+	n   int
+	err error
 }
 
 func (m *mockReader) Read(p []byte) (int, error) {
-	args := m.Called(p)
-	return args.Int(0), args.Error(1)
+	return m.n, m.err
 }
 
 func TestStream_ReadByte(t *testing.T) {
@@ -308,22 +285,19 @@ func TestStream_ReadByte(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
 			b, err := tt.s.ReadByte()
-			assert.Equal(t, tt.b, b)
-			assert.Equal(t, tt.err, err)
+			equal(t, tt.b, b)
+			equal(t, tt.err, err)
 
-			assert.Equal(t, tt.pos, tt.s.position)
-			assert.Equal(t, tt.eos, tt.s.endOfStream)
+			equal(t, tt.pos, tt.s.position)
+			equal(t, tt.eos, tt.s.endOfStream)
 		})
 	}
 }
 
 func TestStream_ReadRune(t *testing.T) {
 	var m mockFile
-	m.On("Stat").Return(&mockFileInfo{}, errors.New("failed"))
-	m.On("Read", mock.AnythingOfType("[]uint8")).Return(1, nil).Run(func(args mock.Arguments) {
-		p := args.Get(0).([]byte)
-		copy(p, "a")
-	})
+	m.statErr = errors.New("failed")
+	m.readData = "a"
 
 	tests := []struct {
 		title string
@@ -419,23 +393,23 @@ func TestStream_ReadRune(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
 			r, size, err := tt.s.ReadRune()
-			assert.Equal(t, tt.r, r)
-			assert.Equal(t, tt.size, size)
-			assert.Equal(t, tt.err, err)
+			equal(t, tt.r, r)
+			equal(t, tt.size, size)
+			equal(t, tt.err, err)
 
-			assert.Equal(t, tt.pos, tt.s.position)
-			assert.Equal(t, tt.eos, tt.s.endOfStream)
+			equal(t, tt.pos, tt.s.position)
+			equal(t, tt.eos, tt.s.endOfStream)
 		})
 	}
 }
 
 type mockSeeker struct {
-	mock.Mock
+	pos int64
+	err error
 }
 
 func (m *mockSeeker) Seek(offset int64, whence int) (int64, error) {
-	args := m.Called(offset, whence)
-	return args.Get(0).(int64), args.Error(1)
+	return m.pos, m.err
 }
 
 func TestStream_Seek(t *testing.T) {
@@ -444,18 +418,17 @@ func TestStream_Seek(t *testing.T) {
 		mockWriter
 		mockSeeker
 	}
-	okSeeker.mockSeeker.On("Seek", int64(0), 0).Return(int64(0), nil)
 
 	var ngSeeker struct {
 		mockReader
 		mockWriter
 		mockSeeker
 	}
-	ngSeeker.mockSeeker.On("Seek", mock.Anything, mock.Anything).Return(int64(0), errors.New("ng"))
+	ngSeeker.mockSeeker.err = errors.New("ng")
 
 	s := &Stream{source: bytes.NewReader([]byte("abc")), streamType: streamTypeBinary, reposition: true}
 	_, err := s.ReadByte()
-	assert.NoError(t, err)
+	noError(t, err)
 
 	tests := []struct {
 		title  string
@@ -507,16 +480,14 @@ func TestStream_Seek(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
 			pos, err := tt.s.Seek(tt.offset, tt.whence)
-			assert.Equal(t, tt.pos, pos)
-			assert.Equal(t, tt.err, err)
+			equal(t, tt.pos, pos)
+			equal(t, tt.err, err)
 		})
 	}
 }
 
 func TestStream_WriteByte(t *testing.T) {
 	var m mockWriter
-	m.On("Write", []byte("a")).Return(1, nil).Once()
-	defer m.AssertExpectations(t)
 
 	tests := []struct {
 		title string
@@ -550,17 +521,15 @@ func TestStream_WriteByte(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
 			err := tt.s.WriteByte(tt.c)
-			assert.Equal(t, tt.err, err)
+			equal(t, tt.err, err)
 
-			assert.Equal(t, tt.pos, tt.s.position)
+			equal(t, tt.pos, tt.s.position)
 		})
 	}
 }
 
 func TestStream_WriteRune(t *testing.T) {
 	var m mockWriter
-	m.On("Write", []byte("a")).Return(1, nil).Once()
-	defer m.AssertExpectations(t)
 
 	tests := []struct {
 		title string
@@ -596,30 +565,32 @@ func TestStream_WriteRune(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
 			n, err := tt.s.WriteRune(tt.r)
-			assert.Equal(t, tt.n, n)
-			assert.Equal(t, tt.err, err)
+			equal(t, tt.n, n)
+			equal(t, tt.err, err)
 
-			assert.Equal(t, tt.pos, tt.s.position)
+			equal(t, tt.pos, tt.s.position)
 		})
 	}
 }
 
 type mockFlusher struct {
-	mock.Mock
+	err    error
+	called bool
 }
 
 func (m *mockFlusher) Flush() error {
-	args := m.Called()
-	return args.Error(0)
+	m.called = true
+	return m.err
 }
 
 type mockSyncer struct {
-	mock.Mock
+	err    error
+	called bool
 }
 
 func (m *mockSyncer) Sync() error {
-	args := m.Called()
-	return args.Error(0)
+	m.called = true
+	return m.err
 }
 
 func TestStream_Flush(t *testing.T) {
@@ -628,11 +599,10 @@ func TestStream_Flush(t *testing.T) {
 			mockWriter
 			mockFlusher
 		}
-		m.mockFlusher.On("Flush").Return(nil).Once()
-		defer m.mockFlusher.AssertExpectations(t)
 
 		s := &Stream{sink: &m, mode: ioModeAppend}
-		assert.NoError(t, s.Flush())
+		noError(t, s.Flush())
+		isTrue(t, m.called)
 	})
 
 	t.Run("syncer", func(t *testing.T) {
@@ -640,19 +610,17 @@ func TestStream_Flush(t *testing.T) {
 			mockWriter
 			mockSyncer
 		}
-		m.mockSyncer.On("Sync").Return(nil).Once()
-		defer m.mockSyncer.AssertExpectations(t)
 
 		s := &Stream{sink: &m, mode: ioModeAppend}
-		assert.NoError(t, s.Flush())
+		noError(t, s.Flush())
+		isTrue(t, m.called)
 	})
 
 	t.Run("else", func(t *testing.T) {
 		var m mockWriter
-		defer m.AssertExpectations(t)
 
 		s := &Stream{sink: &m, mode: ioModeAppend}
-		assert.NoError(t, s.Flush())
+		noError(t, s.Flush())
 	})
 }
 

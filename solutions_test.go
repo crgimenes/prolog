@@ -6,15 +6,13 @@ import (
 	"testing"
 
 	"github.com/crgimenes/prolog/engine"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestSolutions_Close(t *testing.T) {
 	ch := make(chan bool)
 	sols := Solutions{more: ch}
-	assert.NoError(t, sols.Close())
-	assert.Error(t, sols.Close())
+	noError(t, sols.Close())
+	hasError(t, sols.Close())
 }
 
 func TestSolutions_Next(t *testing.T) {
@@ -27,13 +25,13 @@ func TestSolutions_Next(t *testing.T) {
 		defer close(next)
 		next <- env
 		sols := Solutions{more: more, next: next}
-		assert.True(t, sols.Next())
-		assert.Equal(t, engine.NewAtom("foo"), sols.env.Resolve(v))
+		isTrue(t, sols.Next())
+		equal(t, engine.NewAtom("foo"), sols.env.Resolve(v))
 	})
 
 	t.Run("closed", func(t *testing.T) {
 		sols := Solutions{closed: true}
-		assert.False(t, sols.Next())
+		isFalse(t, sols.Next())
 	})
 }
 
@@ -210,9 +208,9 @@ func TestSolutions_Scan(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
-			assert.Equal(t, tt.err, tt.sols.Scan(tt.dest))
+			equal(t, tt.err, tt.sols.Scan(tt.dest))
 			if tt.err == nil {
-				assert.Equal(t, tt.result, tt.dest)
+				equal(t, tt.result, tt.dest)
 			}
 		})
 	}
@@ -221,7 +219,7 @@ func TestSolutions_Scan(t *testing.T) {
 func TestSolutions_Err(t *testing.T) {
 	err := errors.New("ng")
 	sols := Solutions{err: err}
-	assert.Equal(t, err, sols.Err())
+	equal(t, err, sols.Err())
 }
 
 func ExampleSolutions_Scan() {

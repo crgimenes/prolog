@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/crgimenes/prolog/engine"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"os"
 	"regexp"
@@ -16,69 +15,69 @@ import (
 
 func TestNew(t *testing.T) {
 	i := New(nil, nil)
-	assert.NotNil(t, i)
+	notNil(t, i)
 
 	t.Run("number_chars", func(t *testing.T) {
 		// http://www.complang.tuwien.ac.at/ulrich/iso-prolog/number_chars
 		p := New(nil, nil)
 
 		// Section 0
-		assert.NoError(t, p.QuerySolution(`number_chars(1.2,['1',.,'2']).`).Err())
-		assert.NoError(t, p.QuerySolution(`number_chars(1.0e9,['1',.,'0','E','9']).`).Err())
-		assert.NoError(t, p.QuerySolution(`number_chars(1,['0','1']).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(1,[a]), error(syntax_error(_), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(1,[]), error(syntax_error(_), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(1,[[]]), error(type_error(character,[]), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(1,[' ',[]]), error(type_error(character,[]), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(1,[0]), error(type_error(character,0), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(1,[_,[]]), error(type_error(character,[]), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(N,[X]), error(instantiation_error,_), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(N,['0'|_]), error(instantiation_error,_), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(N,'1'), error(type_error(list,'1'), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(N,[a|a]), error(type_error(list,[a|a]), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(N,[49]), error(type_error(character,49), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(N,[]), error(syntax_error(_), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(N,['3',' ']), error(syntax_error(_), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(N,['3',.]), error(syntax_error(_), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`number_chars(N,[' ','1']), N = 1.`).Err())
-		assert.NoError(t, p.QuerySolution(`number_chars(N,['\n','1']), N = 1.`).Err())
-		assert.NoError(t, p.QuerySolution(`number_chars(N,[' ','0','''',a]), N = 97.`).Err())
-		assert.NoError(t, p.QuerySolution(`number_chars(N,[-,' ','1']), N = -1.`).Err())
-		assert.NoError(t, p.QuerySolution(`number_chars(N,[/,*,*,/,'1']), N = 1.`).Err())
-		assert.NoError(t, p.QuerySolution(`number_chars(N,['%','\n','1']), N = 1.`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(N,[-,/,*,*,/,'1']), error(syntax_error(_), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(N,['1',e,'1']), error(syntax_error(_), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(N,['1',.,'0',e]), error(syntax_error(_), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(N,['1',.,'0',e,e]), error(syntax_error(_), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`number_chars(N,['0',x,'1']), N = 1.`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(N,['0','X','1']), error(syntax_error(_), _), true).`).Err())
-		assert.Error(t, p.QuerySolution(`catch(number_chars(1E1,_), error(syntax_error(_), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`\+number_chars(1,['.'|_]).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(N,[+,'1']), error(syntax_error(_), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(N,[+,' ','1']), error(syntax_error(_), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(N,['''',+,'''','1']), error(syntax_error(_), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(N,['11']), error(type_error(character,_), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(N,['1.1']), error(type_error(character,_), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(1+1,['2']), error(type_error(number,1+1), _), true).`).Err())
+		noError(t, p.QuerySolution(`number_chars(1.2,['1',.,'2']).`).Err())
+		noError(t, p.QuerySolution(`number_chars(1.0e9,['1',.,'0','E','9']).`).Err())
+		noError(t, p.QuerySolution(`number_chars(1,['0','1']).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(1,[a]), error(syntax_error(_), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(1,[]), error(syntax_error(_), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(1,[[]]), error(type_error(character,[]), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(1,[' ',[]]), error(type_error(character,[]), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(1,[0]), error(type_error(character,0), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(1,[_,[]]), error(type_error(character,[]), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(N,[X]), error(instantiation_error,_), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(N,['0'|_]), error(instantiation_error,_), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(N,'1'), error(type_error(list,'1'), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(N,[a|a]), error(type_error(list,[a|a]), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(N,[49]), error(type_error(character,49), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(N,[]), error(syntax_error(_), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(N,['3',' ']), error(syntax_error(_), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(N,['3',.]), error(syntax_error(_), _), true).`).Err())
+		noError(t, p.QuerySolution(`number_chars(N,[' ','1']), N = 1.`).Err())
+		noError(t, p.QuerySolution(`number_chars(N,['\n','1']), N = 1.`).Err())
+		noError(t, p.QuerySolution(`number_chars(N,[' ','0','''',a]), N = 97.`).Err())
+		noError(t, p.QuerySolution(`number_chars(N,[-,' ','1']), N = -1.`).Err())
+		noError(t, p.QuerySolution(`number_chars(N,[/,*,*,/,'1']), N = 1.`).Err())
+		noError(t, p.QuerySolution(`number_chars(N,['%','\n','1']), N = 1.`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(N,[-,/,*,*,/,'1']), error(syntax_error(_), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(N,['1',e,'1']), error(syntax_error(_), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(N,['1',.,'0',e]), error(syntax_error(_), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(N,['1',.,'0',e,e]), error(syntax_error(_), _), true).`).Err())
+		noError(t, p.QuerySolution(`number_chars(N,['0',x,'1']), N = 1.`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(N,['0','X','1']), error(syntax_error(_), _), true).`).Err())
+		hasError(t, p.QuerySolution(`catch(number_chars(1E1,_), error(syntax_error(_), _), true).`).Err())
+		noError(t, p.QuerySolution(`\+number_chars(1,['.'|_]).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(N,[+,'1']), error(syntax_error(_), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(N,[+,' ','1']), error(syntax_error(_), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(N,['''',+,'''','1']), error(syntax_error(_), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(N,['11']), error(type_error(character,_), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(N,['1.1']), error(type_error(character,_), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(1+1,['2']), error(type_error(number,1+1), _), true).`).Err())
 
 		// Section 2
-		assert.NoError(t, p.QuerySolution(`number_chars(1,[C]), C = '1'.`).Err())
-		assert.NoError(t, p.QuerySolution(`\+number_chars(1,[C,D]).`).Err())
-		assert.NoError(t, p.QuerySolution(`\+number_chars(1,[C,C]).`).Err())
-		assert.NoError(t, p.QuerySolution(`\+number_chars(0,[C,C]).`).Err())
-		assert.NoError(t, p.QuerySolution(`number_chars(10,[C,D]), C = '1', D = '0'.`).Err())
-		assert.NoError(t, p.QuerySolution(`\+number_chars(100,[C,D]).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(N,[X|2]), error(instantiation_error,_), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(N,[1|_]), error(type_error(character,1), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(V,[1|2]), error(type_error(character,1), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars([],1), error(type_error(list,1), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(1,1), error(type_error(list,1), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(1,[a|2]), error(type_error(list,[a|2]), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(1,[_|2]), error(type_error(list,[_|2]), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(1,[[]|_]), error(type_error(character,[]), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(number_chars(1,[[]|2]), error(type_error(character,[]), _), true).`).Err())
+		noError(t, p.QuerySolution(`number_chars(1,[C]), C = '1'.`).Err())
+		noError(t, p.QuerySolution(`\+number_chars(1,[C,D]).`).Err())
+		noError(t, p.QuerySolution(`\+number_chars(1,[C,C]).`).Err())
+		noError(t, p.QuerySolution(`\+number_chars(0,[C,C]).`).Err())
+		noError(t, p.QuerySolution(`number_chars(10,[C,D]), C = '1', D = '0'.`).Err())
+		noError(t, p.QuerySolution(`\+number_chars(100,[C,D]).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(N,[X|2]), error(instantiation_error,_), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(N,[1|_]), error(type_error(character,1), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(V,[1|2]), error(type_error(character,1), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars([],1), error(type_error(list,1), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(1,1), error(type_error(list,1), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(1,[a|2]), error(type_error(list,[a|2]), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(1,[_|2]), error(type_error(list,[_|2]), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(1,[[]|_]), error(type_error(character,[]), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(number_chars(1,[[]|2]), error(type_error(character,[]), _), true).`).Err())
 
-		assert.NoError(t, p.QuerySolution(`catch((L=['1'|L], number_chars(N,L)), error(type_error(list,['1'|_]), _), L=['1'|L]).`).Err())
+		noError(t, p.QuerySolution(`catch((L=['1'|L], number_chars(N,L)), error(type_error(list,['1'|_]), _), L=['1'|L]).`).Err())
 	})
 
 	t.Run("length", func(t *testing.T) {
@@ -91,71 +90,71 @@ func TestNew(t *testing.T) {
 		}
 
 		sols, err := p.Query(`length(L,N).`)
-		assert.NoError(t, err)
-		assert.True(t, sols.Next())
-		assert.NoError(t, sols.Scan(&s))
-		assert.Len(t, s.L, 0)
-		assert.Equal(t, 0, s.N)
-		assert.True(t, sols.Next())
-		assert.NoError(t, sols.Scan(&s))
-		assert.Len(t, s.L, 1)
-		assert.Equal(t, 1, s.N)
-		assert.True(t, sols.Next())
-		assert.NoError(t, sols.Scan(&s))
-		assert.Len(t, s.L, 2)
-		assert.Equal(t, 2, s.N)
-		assert.NoError(t, sols.Close())
+		noError(t, err)
+		isTrue(t, sols.Next())
+		noError(t, sols.Scan(&s))
+		hasLen(t, s.L, 0)
+		equal(t, 0, s.N)
+		isTrue(t, sols.Next())
+		noError(t, sols.Scan(&s))
+		hasLen(t, s.L, 1)
+		equal(t, 1, s.N)
+		isTrue(t, sols.Next())
+		noError(t, sols.Scan(&s))
+		hasLen(t, s.L, 2)
+		equal(t, 2, s.N)
+		noError(t, sols.Close())
 
-		assert.NoError(t, p.QuerySolution(`length(L,0), L = [].`).Err())
-		assert.Equal(t, ErrNoSolutions, p.QuerySolution(`length([_|L],0).`).Err())
-		assert.Equal(t, ErrNoSolutions, p.QuerySolution(`length(2,0).`).Err())
-		assert.Equal(t, ErrNoSolutions, p.QuerySolution(`length([_|2],0).`).Err())
-		assert.Equal(t, ErrNoSolutions, p.QuerySolution(`length([_|2],N).`).Err())
-		assert.Equal(t, ErrNoSolutions, p.QuerySolution(`length([_|2],2).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(length(L,-1), error(domain_error(not_less_than_zero,-1), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(length([],-1), error(domain_error(not_less_than_zero,-1), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(length(a,-1), error(domain_error(not_less_than_zero,-1), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(length([],-0.1), error(type_error(integer,-0.1), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(length(L,-0.1), error(type_error(integer,-0.1), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(length([a],1.0), error(type_error(integer,1.0), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(length(L,1.0), error(type_error(integer,1.0), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(length(L,1.1), error(type_error(integer,1.1), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(length(L,1.0e99), error(type_error(integer,1.0e99), _), true).`).Err())
-		assert.Equal(t, ErrNoSolutions, p.QuerySolution(`N is 2^52, length([], N).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(length([],0+0), error(type_error(integer,0+0), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(length([],-_), error(type_error(integer,-_), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(length([a],-_), error(type_error(integer,-_), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(length([a,b|X],X), error(resource_error(finite_memory), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(length(L,L), error(resource_error(finite_memory), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch((L = [_|_], length(L,L)), error(type_error(integer,[_|_]), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch((L = [_], length(L,L)), error(type_error(integer,[_]), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch((L = [1], length(L,L)), error(type_error(integer,[1]), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch((L = [a|L], length(L,N)), error(resource_error(finite_memory), _), true).`).Err())
-		assert.Equal(t, ErrNoSolutions, p.QuerySolution(`L = [a|L], length(L,0).`).Err())
-		assert.Equal(t, ErrNoSolutions, p.QuerySolution(`L = [a|L], length(L,7).`).Err())
+		noError(t, p.QuerySolution(`length(L,0), L = [].`).Err())
+		equal(t, ErrNoSolutions, p.QuerySolution(`length([_|L],0).`).Err())
+		equal(t, ErrNoSolutions, p.QuerySolution(`length(2,0).`).Err())
+		equal(t, ErrNoSolutions, p.QuerySolution(`length([_|2],0).`).Err())
+		equal(t, ErrNoSolutions, p.QuerySolution(`length([_|2],N).`).Err())
+		equal(t, ErrNoSolutions, p.QuerySolution(`length([_|2],2).`).Err())
+		noError(t, p.QuerySolution(`catch(length(L,-1), error(domain_error(not_less_than_zero,-1), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(length([],-1), error(domain_error(not_less_than_zero,-1), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(length(a,-1), error(domain_error(not_less_than_zero,-1), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(length([],-0.1), error(type_error(integer,-0.1), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(length(L,-0.1), error(type_error(integer,-0.1), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(length([a],1.0), error(type_error(integer,1.0), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(length(L,1.0), error(type_error(integer,1.0), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(length(L,1.1), error(type_error(integer,1.1), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(length(L,1.0e99), error(type_error(integer,1.0e99), _), true).`).Err())
+		equal(t, ErrNoSolutions, p.QuerySolution(`N is 2^52, length([], N).`).Err())
+		noError(t, p.QuerySolution(`catch(length([],0+0), error(type_error(integer,0+0), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(length([],-_), error(type_error(integer,-_), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(length([a],-_), error(type_error(integer,-_), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(length([a,b|X],X), error(resource_error(finite_memory), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(length(L,L), error(resource_error(finite_memory), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch((L = [_|_], length(L,L)), error(type_error(integer,[_|_]), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch((L = [_], length(L,L)), error(type_error(integer,[_]), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch((L = [1], length(L,L)), error(type_error(integer,[1]), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch((L = [a|L], length(L,N)), error(resource_error(finite_memory), _), true).`).Err())
+		equal(t, ErrNoSolutions, p.QuerySolution(`L = [a|L], length(L,0).`).Err())
+		equal(t, ErrNoSolutions, p.QuerySolution(`L = [a|L], length(L,7).`).Err())
 		/* This library doesn't implement freeze/2
-		assert.NoError(t, p.QuerySolution(`freeze(L,L=[]), \+length(L,L).`).Err())
+		noError(t, p.QuerySolution(`freeze(L,L=[]), \+length(L,L).`).Err())
 		ctx, cancel = context.WithTimeout(context.Background(), 100*time.Millisecond)
-		assert.Equal(t, context.Canceled, p.QuerySolutionContext(ctx, `freeze(L,L=[_|L]), length(L,N).`).Err())
+		equal(t, context.Canceled, p.QuerySolutionContext(ctx, `freeze(L,L=[_|L]), length(L,N).`).Err())
 		cancel()
-		assert.NoError(t, p.QuerySolution(`freeze(L,L=[_|L]), N is 2^64, \+length(L,N).`).Err())
+		noError(t, p.QuerySolution(`freeze(L,L=[_|L]), N is 2^64, \+length(L,N).`).Err())
 		*/
 
 		sols, err = p.Query(`length([a, b|L], N).`)
-		assert.NoError(t, err)
-		assert.True(t, sols.Next())
-		assert.NoError(t, sols.Scan(&s))
-		assert.Len(t, s.L, 0)
-		assert.Equal(t, 2, s.N)
-		assert.True(t, sols.Next())
-		assert.NoError(t, sols.Scan(&s))
-		assert.Len(t, s.L, 1)
-		assert.Equal(t, 3, s.N)
-		assert.True(t, sols.Next())
-		assert.NoError(t, sols.Scan(&s))
-		assert.Len(t, s.L, 2)
-		assert.Equal(t, 4, s.N)
-		assert.NoError(t, sols.Close())
+		noError(t, err)
+		isTrue(t, sols.Next())
+		noError(t, sols.Scan(&s))
+		hasLen(t, s.L, 0)
+		equal(t, 2, s.N)
+		isTrue(t, sols.Next())
+		noError(t, sols.Scan(&s))
+		hasLen(t, s.L, 1)
+		equal(t, 3, s.N)
+		isTrue(t, sols.Next())
+		noError(t, sols.Scan(&s))
+		hasLen(t, s.L, 2)
+		equal(t, 4, s.N)
+		noError(t, sols.Close())
 	})
 
 	t.Run("call_nth", func(t *testing.T) {
@@ -166,48 +165,48 @@ func TestNew(t *testing.T) {
 
 		p := New(nil, nil)
 
-		assert.NoError(t, p.QuerySolution(`call_nth(true, Nth), Nth = 1.`).Err())
+		noError(t, p.QuerySolution(`call_nth(true, Nth), Nth = 1.`).Err())
 
 		sols, err := p.Query(`call_nth(repeat, Nth).`)
-		assert.NoError(t, err)
-		assert.True(t, sols.Next())
-		assert.NoError(t, sols.Scan(&s))
-		assert.Equal(t, 1, s.Nth)
-		assert.True(t, sols.Next())
-		assert.NoError(t, sols.Scan(&s))
-		assert.Equal(t, 2, s.Nth)
-		assert.True(t, sols.Next())
-		assert.NoError(t, sols.Scan(&s))
-		assert.Equal(t, 3, s.Nth)
-		assert.True(t, sols.Next())
-		assert.NoError(t, sols.Scan(&s))
-		assert.Equal(t, 4, s.Nth)
-		assert.True(t, sols.Next())
-		assert.NoError(t, sols.Scan(&s))
-		assert.Equal(t, 5, s.Nth)
-		assert.NoError(t, sols.Close())
+		noError(t, err)
+		isTrue(t, sols.Next())
+		noError(t, sols.Scan(&s))
+		equal(t, 1, s.Nth)
+		isTrue(t, sols.Next())
+		noError(t, sols.Scan(&s))
+		equal(t, 2, s.Nth)
+		isTrue(t, sols.Next())
+		noError(t, sols.Scan(&s))
+		equal(t, 3, s.Nth)
+		isTrue(t, sols.Next())
+		noError(t, sols.Scan(&s))
+		equal(t, 4, s.Nth)
+		isTrue(t, sols.Next())
+		noError(t, sols.Scan(&s))
+		equal(t, 5, s.Nth)
+		noError(t, sols.Close())
 
 		sols, err = p.Query(`call_nth(( N = 1 ; N = 2 ), Nth).`)
-		assert.NoError(t, err)
-		assert.True(t, sols.Next())
-		assert.NoError(t, sols.Scan(&s))
-		assert.Equal(t, 1, s.N)
-		assert.Equal(t, 1, s.Nth)
-		assert.True(t, sols.Next())
-		assert.NoError(t, sols.Scan(&s))
-		assert.Equal(t, 2, s.N)
-		assert.Equal(t, 2, s.Nth)
-		assert.NoError(t, sols.Close())
+		noError(t, err)
+		isTrue(t, sols.Next())
+		noError(t, sols.Scan(&s))
+		equal(t, 1, s.N)
+		equal(t, 1, s.Nth)
+		isTrue(t, sols.Next())
+		noError(t, sols.Scan(&s))
+		equal(t, 2, s.N)
+		equal(t, 2, s.Nth)
+		noError(t, sols.Close())
 
-		assert.NoError(t, p.QuerySolution(`catch(call_nth(true, non_integer), error(type_error(integer,non_integer), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(call_nth(true, 1.0), error(type_error(integer,1.0), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`\+call_nth(true, 0).`).Err())
-		assert.NoError(t, p.QuerySolution(`\+call_nth(repeat, 0).`).Err())
-		assert.NoError(t, p.QuerySolution(`catch(call_nth(repeat, -1), error(domain_error(not_less_than_zero,-1), _), true).`).Err())
-		assert.NoError(t, p.QuerySolution(`call_nth(length(L,N), 3), L = [_A,_B], N = 2.`).Err())
-		assert.NoError(t, p.QuerySolution(`\+call_nth(inex, 0).`).Err())
-		assert.NoError(t, p.QuerySolution(`\+call_nth(1, 0).`).Err())
-		assert.NoError(t, p.QuerySolution(`\+call_nth(V, 0).`).Err())
+		noError(t, p.QuerySolution(`catch(call_nth(true, non_integer), error(type_error(integer,non_integer), _), true).`).Err())
+		noError(t, p.QuerySolution(`catch(call_nth(true, 1.0), error(type_error(integer,1.0), _), true).`).Err())
+		noError(t, p.QuerySolution(`\+call_nth(true, 0).`).Err())
+		noError(t, p.QuerySolution(`\+call_nth(repeat, 0).`).Err())
+		noError(t, p.QuerySolution(`catch(call_nth(repeat, -1), error(domain_error(not_less_than_zero,-1), _), true).`).Err())
+		noError(t, p.QuerySolution(`call_nth(length(L,N), 3), L = [_A,_B], N = 2.`).Err())
+		noError(t, p.QuerySolution(`\+call_nth(inex, 0).`).Err())
+		noError(t, p.QuerySolution(`\+call_nth(1, 0).`).Err())
+		noError(t, p.QuerySolution(`\+call_nth(V, 0).`).Err())
 	})
 }
 
@@ -248,7 +247,7 @@ func TestNew_variableNames(t *testing.T) {
 		// {name: "28", query: `freeze(T,throw(g(T))), N = 'X', write_term(T,[quoted(true), variable_names([N=T])]).`, output: `'$VAR'(9)`}, This implementation doesn't support freeze/2.
 		{name: "13", query: `write_term(T,[quoted(true), variable_names(['X'=X,'Y'=Y,'Z'=Z])]).`, outputFn: func(t *testing.T, output string) {
 			t.Helper()
-			assert.Regexp(t, regexp.MustCompile(`\A_\d+\z`), output)
+			matchRegexp(t, regexp.MustCompile(`\A_\d+\z`), output)
 		}},
 		{name: "14", query: `T=(X,Y,Z), write_term(T,[quoted(true), variable_names(['X'=X,'Y'=Y,'Z'=Z])]).`, output: `X,Y,Z`},
 		{name: "15", query: `Z=Y, T=(X,Y,Z), write_term(T,[quoted(true), variable_names(['X'=X,'Y'=Y,'Z'=Z])]).`, output: `X,Y,Y`},
@@ -257,7 +256,7 @@ func TestNew_variableNames(t *testing.T) {
 		{name: "18", query: `T=(Z,Y), write_term(T,[quoted(true), variable_names(['X'=X,'Y'=Y,'Z'=Z])]).`, output: `Z,Y`},
 		{name: "19", query: `write_term(T,[quoted(true), variable_names(['Z'=Z,'Y'=Y,'X'=X])]).`, outputFn: func(t *testing.T, output string) {
 			t.Helper()
-			assert.Regexp(t, regexp.MustCompile(`\A_\d+\z`), output)
+			matchRegexp(t, regexp.MustCompile(`\A_\d+\z`), output)
 		}},
 		{name: "20", query: `T=(X,Y,Z), write_term(T,[quoted(true), variable_names(['Z'=Z,'Y'=Y,'X'=X])]).`, output: `X,Y,Z`},
 		{name: "21", query: `Z=Y, T=(X,Y,Z), write_term(T,[quoted(true), variable_names(['Z'=Z,'Y'=Y,'X'=X])]).`, output: `X,Z,Z`},
@@ -266,7 +265,7 @@ func TestNew_variableNames(t *testing.T) {
 		{name: "24", query: `T=(Z,Y), write_term(T,[quoted(true), variable_names(['Z'=Z,'Y'=Y,'X'=X])]).`, output: `Z,Y`},
 		{name: "25", query: `write_term(T,[quoted(true), variable_names(['X'=Z,'X'=Y,'X'=X])]).`, outputFn: func(t *testing.T, output string) {
 			t.Helper()
-			assert.Regexp(t, regexp.MustCompile(`\A_\d+\z`), output)
+			matchRegexp(t, regexp.MustCompile(`\A_\d+\z`), output)
 		}},
 		{name: "26", query: `T=(X,Y,Z), write_term(T,[quoted(true), variable_names(['X'=Z,'X'=Y,'X'=X])]).`, output: `X,X,X`},
 		{name: "27", query: `T=(1,2,3), T=(X,Y,Z), write_term(T,[quoted(true), variable_names(['X'=Z,'X'=Y,'X'=X])]).`, output: `1,2,3`},
@@ -329,13 +328,13 @@ func TestNew_variableNames(t *testing.T) {
 				p.SetUserInput(engine.NewInputTextStream(bytes.NewBufferString(tt.input)))
 			}
 			out.Reset()
-			assert.Equal(t, tt.err, p.QuerySolutionContext(ctx, tt.query).Err())
+			equal(t, tt.err, p.QuerySolutionContext(ctx, tt.query).Err())
 			if tt.outputFn == nil {
-				assert.Equal(t, tt.output, out.String())
+				equal(t, tt.output, out.String())
 			} else {
 				tt.outputFn(t, out.String())
 			}
-			assert.Equal(t, tt.waits, errors.Is(ctx.Err(), context.DeadlineExceeded))
+			equal(t, tt.waits, errors.Is(ctx.Err(), context.DeadlineExceeded))
 		})
 	}
 }
@@ -625,16 +624,16 @@ a.`, output: `syntax err.`},
 		{name: "226", input: `write_canonical(_+_).`, outputFn: func(t *testing.T, output string) {
 			t.Helper()
 			p, err := regexp.Compile(`\A\+\(_(\d+),_(\d+)\)\z`) // +(_1,_2)
-			assert.NoError(t, err)
+			noError(t, err)
 			match := p.FindAllStringSubmatch(output, 2)
-			assert.NotEqual(t, match[0][1], match[0][2])
+			notEqual(t, match[0][1], match[0][2])
 		}},
 		{name: "227", input: `write_canonical(B+B).`, outputFn: func(t *testing.T, output string) {
 			t.Helper()
 			p, err := regexp.Compile(`\A\+\(_(\d+),_(\d+)\)\z`) // +(_1,_1)
-			assert.NoError(t, err)
+			noError(t, err)
 			match := p.FindAllStringSubmatch(output, 2)
-			assert.Equal(t, match[0][1], match[0][2])
+			equal(t, match[0][1], match[0][2])
 		}},
 		{name: "228", input: `writeq(0'\z).`, output: `syntax err.`},
 		{name: "230", input: `char_code('\^',X).`, output: `syntax err.`},
@@ -694,7 +693,7 @@ a.`, output: `syntax err.`},
 			var out bytes.Buffer
 			p := New(bytes.NewBufferString(tt.input+"\n"), &out)
 			if tt.premise != "" {
-				assert.NoError(t, p.QuerySolution(tt.premise).Err())
+				noError(t, p.QuerySolution(tt.premise).Err())
 			}
 			sol := p.QuerySolution(`
 				catch(catch((read(X), X),
@@ -703,11 +702,11 @@ a.`, output: `syntax err.`},
 				      error(E, _),
 				      writeq(E)), !; write(fails).
 			`)
-			assert.NoError(t, sol.Err())
+			noError(t, sol.Err())
 			if tt.outputFn != nil {
 				tt.outputFn(t, out.String())
 			} else {
-				assert.Equal(t, tt.output, out.String())
+				equal(t, tt.output, out.String())
 			}
 		})
 	}
@@ -753,13 +752,13 @@ append(nil, L, L).`},
 			})
 			i.Register1(engine.NewAtom("consult"), engine.Consult)
 			i.Register3(engine.NewAtom("op"), engine.Op)
-			assert.NoError(t, i.Exec(`:-(op(1200, xfx, :-)).`))
-			assert.NoError(t, i.Exec(`:-(op(1200, fx, :-)).`))
-			assert.NoError(t, i.Exec(tt.premise))
+			noError(t, i.Exec(`:-(op(1200, xfx, :-)).`))
+			noError(t, i.Exec(`:-(op(1200, fx, :-)).`))
+			noError(t, i.Exec(tt.premise))
 			if tt.err {
-				assert.Error(t, i.Exec(tt.query, tt.args...))
+				hasError(t, i.Exec(tt.query, tt.args...))
 			} else {
-				assert.NoError(t, i.Exec(tt.query, tt.args...))
+				noError(t, i.Exec(tt.query, tt.args...))
 			}
 		})
 	}
@@ -803,7 +802,7 @@ func TestInterpreter_Query(t *testing.T) {
 			var i Interpreter
 			i.Register3(engine.NewAtom("op"), engine.Op)
 			i.Register2(engine.NewAtom("set_prolog_flag"), engine.SetPrologFlag)
-			assert.NoError(t, i.Exec(`
+			noError(t, i.Exec(`
 :-(op(1200, xfx, :-)).
 :-(set_prolog_flag(double_quotes, atom)).
 
@@ -815,20 +814,20 @@ foo(a, 1, 2.0, [abc, def]).
 
 			sols, err := i.Query(tt.query, tt.args...)
 			if tt.queryErr {
-				assert.Error(t, err)
+				hasError(t, err)
 				return
 			} else {
-				assert.NoError(t, err)
+				noError(t, err)
 			}
 
-			assert.True(t, sols.Next())
+			isTrue(t, sols.Next())
 			if tt.scanErr {
-				assert.Error(t, sols.Scan(tt.scan))
+				hasError(t, sols.Scan(tt.scan))
 				return
 			} else {
-				assert.NoError(t, sols.Scan(tt.scan))
+				noError(t, sols.Scan(tt.scan))
 			}
-			assert.Equal(t, tt.result, tt.scan)
+			equal(t, tt.result, tt.scan)
 		})
 	}
 }
@@ -836,28 +835,28 @@ foo(a, 1, 2.0, [abc, def]).
 func TestInterpreter_Query_close(t *testing.T) {
 	var i Interpreter
 	i.Register0(engine.NewAtom("do_not_call"), func(_ *engine.VM, k engine.Cont, env *engine.Env) *engine.Promise {
-		assert.Fail(t, "unreachable")
+		fail(t, "unreachable")
 		return k(env)
 	})
 	sols, err := i.Query("do_not_call.")
-	assert.NoError(t, err)
-	assert.NoError(t, sols.Close())
+	noError(t, err)
+	noError(t, sols.Close())
 }
 
 func TestMisc(t *testing.T) {
 	t.Run("negation", func(t *testing.T) {
 		i := New(nil, nil)
 		sols, err := i.Query(`\+true.`)
-		assert.NoError(t, err)
+		noError(t, err)
 
-		assert.False(t, sols.Next())
+		isFalse(t, sols.Next())
 	})
 
 	t.Run("cut", func(t *testing.T) {
 		// https://www.cs.uleth.ca/~gaur/post/prolog-cut-negation/
 		t.Run("p", func(t *testing.T) {
 			i := New(nil, nil)
-			assert.NoError(t, i.Exec(`
+			noError(t, i.Exec(`
 p(a).
 p(b):-!.
 p(c).
@@ -865,31 +864,31 @@ p(c).
 
 			t.Run("single", func(t *testing.T) {
 				sols, err := i.Query(`p(X).`)
-				assert.NoError(t, err)
+				noError(t, err)
 				defer func() {
-					assert.NoError(t, sols.Close())
+					noError(t, sols.Close())
 				}()
 
 				var s struct {
 					X string
 				}
 
-				assert.True(t, sols.Next())
-				assert.NoError(t, sols.Scan(&s))
-				assert.Equal(t, "a", s.X)
+				isTrue(t, sols.Next())
+				noError(t, sols.Scan(&s))
+				equal(t, "a", s.X)
 
-				assert.True(t, sols.Next())
-				assert.NoError(t, sols.Scan(&s))
-				assert.Equal(t, "b", s.X)
+				isTrue(t, sols.Next())
+				noError(t, sols.Scan(&s))
+				equal(t, "b", s.X)
 
-				assert.False(t, sols.Next())
+				isFalse(t, sols.Next())
 			})
 
 			t.Run("double", func(t *testing.T) {
 				sols, err := i.Query(`p(X), p(Y).`)
-				assert.NoError(t, err)
+				noError(t, err)
 				defer func() {
-					assert.NoError(t, sols.Close())
+					noError(t, sols.Close())
 				}()
 
 				var s struct {
@@ -897,34 +896,34 @@ p(c).
 					Y string
 				}
 
-				assert.True(t, sols.Next())
-				assert.NoError(t, sols.Scan(&s))
-				assert.Equal(t, "a", s.X)
-				assert.Equal(t, "a", s.Y)
+				isTrue(t, sols.Next())
+				noError(t, sols.Scan(&s))
+				equal(t, "a", s.X)
+				equal(t, "a", s.Y)
 
-				assert.True(t, sols.Next())
-				assert.NoError(t, sols.Scan(&s))
-				assert.Equal(t, "a", s.X)
-				assert.Equal(t, "b", s.Y)
+				isTrue(t, sols.Next())
+				noError(t, sols.Scan(&s))
+				equal(t, "a", s.X)
+				equal(t, "b", s.Y)
 
-				assert.True(t, sols.Next())
-				assert.NoError(t, sols.Scan(&s))
-				assert.Equal(t, "b", s.X)
-				assert.Equal(t, "a", s.Y)
+				isTrue(t, sols.Next())
+				noError(t, sols.Scan(&s))
+				equal(t, "b", s.X)
+				equal(t, "a", s.Y)
 
-				assert.True(t, sols.Next())
-				assert.NoError(t, sols.Scan(&s))
-				assert.Equal(t, "b", s.X)
-				assert.Equal(t, "b", s.Y)
+				isTrue(t, sols.Next())
+				noError(t, sols.Scan(&s))
+				equal(t, "b", s.X)
+				equal(t, "b", s.Y)
 
-				assert.False(t, sols.Next())
+				isFalse(t, sols.Next())
 			})
 		})
 
 		// http://www.cse.unsw.edu.au/~billw/dictionaries/prolog/cut.html
 		t.Run("teaches", func(t *testing.T) {
 			i := New(nil, nil)
-			assert.NoError(t, i.Exec(`
+			noError(t, i.Exec(`
 teaches(dr_fred, history).
 teaches(dr_fred, english).
 teaches(dr_fred, drama).
@@ -937,9 +936,9 @@ studies(alex, physics).
 
 			t.Run("without cut", func(t *testing.T) {
 				sols, err := i.Query(`teaches(dr_fred, Course), studies(Student, Course).`)
-				assert.NoError(t, err)
+				noError(t, err)
 				defer func() {
-					assert.NoError(t, sols.Close())
+					noError(t, sols.Close())
 				}()
 
 				type cs struct {
@@ -948,45 +947,45 @@ studies(alex, physics).
 				}
 				var s cs
 
-				assert.True(t, sols.Next())
-				assert.NoError(t, sols.Scan(&s))
-				assert.Equal(t, cs{
+				isTrue(t, sols.Next())
+				noError(t, sols.Scan(&s))
+				equal(t, cs{
 					Course:  "english",
 					Student: "alice",
 				}, s)
 
-				assert.True(t, sols.Next())
-				assert.NoError(t, sols.Scan(&s))
-				assert.Equal(t, cs{
+				isTrue(t, sols.Next())
+				noError(t, sols.Scan(&s))
+				equal(t, cs{
 					Course:  "english",
 					Student: "angus",
 				}, s)
 
-				assert.True(t, sols.Next())
-				assert.NoError(t, sols.Scan(&s))
-				assert.Equal(t, cs{
+				isTrue(t, sols.Next())
+				noError(t, sols.Scan(&s))
+				equal(t, cs{
 					Course:  "drama",
 					Student: "amelia",
 				}, s)
 
-				assert.False(t, sols.Next())
+				isFalse(t, sols.Next())
 			})
 
 			t.Run("with cut in the middle", func(t *testing.T) {
 				sols, err := i.Query(`teaches(dr_fred, Course), !, studies(Student, Course).`)
-				assert.NoError(t, err)
+				noError(t, err)
 				defer func() {
-					assert.NoError(t, sols.Close())
+					noError(t, sols.Close())
 				}()
 
-				assert.False(t, sols.Next())
+				isFalse(t, sols.Next())
 			})
 
 			t.Run("with cut at the end", func(t *testing.T) {
 				sols, err := i.Query(`teaches(dr_fred, Course), studies(Student, Course), !.`)
-				assert.NoError(t, err)
+				noError(t, err)
 				defer func() {
-					assert.NoError(t, sols.Close())
+					noError(t, sols.Close())
 				}()
 
 				type cs struct {
@@ -995,21 +994,21 @@ studies(alex, physics).
 				}
 				var s cs
 
-				assert.True(t, sols.Next())
-				assert.NoError(t, sols.Scan(&s))
-				assert.Equal(t, cs{
+				isTrue(t, sols.Next())
+				noError(t, sols.Scan(&s))
+				equal(t, cs{
 					Course:  "english",
 					Student: "alice",
 				}, s)
 
-				assert.False(t, sols.Next())
+				isFalse(t, sols.Next())
 			})
 
 			t.Run("with cut at the beginning", func(t *testing.T) {
 				sols, err := i.Query(`!, teaches(dr_fred, Course), studies(Student, Course).`)
-				assert.NoError(t, err)
+				noError(t, err)
 				defer func() {
-					assert.NoError(t, sols.Close())
+					noError(t, sols.Close())
 				}()
 
 				type cs struct {
@@ -1018,28 +1017,28 @@ studies(alex, physics).
 				}
 				var s cs
 
-				assert.True(t, sols.Next())
-				assert.NoError(t, sols.Scan(&s))
-				assert.Equal(t, cs{
+				isTrue(t, sols.Next())
+				noError(t, sols.Scan(&s))
+				equal(t, cs{
 					Course:  "english",
 					Student: "alice",
 				}, s)
 
-				assert.True(t, sols.Next())
-				assert.NoError(t, sols.Scan(&s))
-				assert.Equal(t, cs{
+				isTrue(t, sols.Next())
+				noError(t, sols.Scan(&s))
+				equal(t, cs{
 					Course:  "english",
 					Student: "angus",
 				}, s)
 
-				assert.True(t, sols.Next())
-				assert.NoError(t, sols.Scan(&s))
-				assert.Equal(t, cs{
+				isTrue(t, sols.Next())
+				noError(t, sols.Scan(&s))
+				equal(t, cs{
 					Course:  "drama",
 					Student: "amelia",
 				}, s)
 
-				assert.False(t, sols.Next())
+				isFalse(t, sols.Next())
 			})
 		})
 
@@ -1047,23 +1046,23 @@ studies(alex, physics).
 			t.Run("with", func(t *testing.T) {
 				i := New(nil, nil)
 				sols, err := i.Query(`call(!), fail; true.`)
-				assert.NoError(t, err)
+				noError(t, err)
 				defer func() {
-					assert.NoError(t, sols.Close())
+					noError(t, sols.Close())
 				}()
 
-				assert.True(t, sols.Next())
+				isTrue(t, sols.Next())
 			})
 
 			t.Run("without", func(t *testing.T) {
 				i := New(nil, nil)
 				sols, err := i.Query(`!, fail; true.`)
-				assert.NoError(t, err)
+				noError(t, err)
 				defer func() {
-					assert.NoError(t, sols.Close())
+					noError(t, sols.Close())
 				}()
 
-				assert.False(t, sols.Next())
+				isFalse(t, sols.Next())
 			})
 		})
 	})
@@ -1072,80 +1071,80 @@ studies(alex, physics).
 		t.Run("cut", func(t *testing.T) {
 			i := New(nil, nil)
 			sols, err := i.Query("repeat, !, fail.")
-			assert.NoError(t, err)
-			assert.False(t, sols.Next())
+			noError(t, err)
+			isFalse(t, sols.Next())
 		})
 
 		t.Run("stream", func(t *testing.T) {
 			i := New(nil, nil)
 			sols, err := i.Query("repeat, (X = a; X = b).")
-			assert.NoError(t, err)
+			noError(t, err)
 
 			var s struct {
 				X string
 			}
 
-			assert.True(t, sols.Next())
-			assert.NoError(t, sols.Scan(&s))
-			assert.Equal(t, "a", s.X)
+			isTrue(t, sols.Next())
+			noError(t, sols.Scan(&s))
+			equal(t, "a", s.X)
 
-			assert.True(t, sols.Next())
-			assert.NoError(t, sols.Scan(&s))
-			assert.Equal(t, "b", s.X)
+			isTrue(t, sols.Next())
+			noError(t, sols.Scan(&s))
+			equal(t, "b", s.X)
 
-			assert.True(t, sols.Next())
-			assert.NoError(t, sols.Scan(&s))
-			assert.Equal(t, "a", s.X)
+			isTrue(t, sols.Next())
+			noError(t, sols.Scan(&s))
+			equal(t, "a", s.X)
 
-			assert.True(t, sols.Next())
-			assert.NoError(t, sols.Scan(&s))
-			assert.Equal(t, "b", s.X)
+			isTrue(t, sols.Next())
+			noError(t, sols.Scan(&s))
+			equal(t, "b", s.X)
 		})
 	})
 
 	t.Run("atom_chars", func(t *testing.T) {
 		i := New(nil, nil)
 		sols, err := i.Query("atom_chars(f(a), L).")
-		assert.NoError(t, err)
-		assert.False(t, sols.Next())
+		noError(t, err)
+		isFalse(t, sols.Next())
 	})
 
 	t.Run("term_eq", func(t *testing.T) {
 		i := New(nil, nil)
 		sols, err := i.Query("f(a) == f(a).")
-		assert.NoError(t, err)
-		assert.True(t, sols.Next())
+		noError(t, err)
+		isTrue(t, sols.Next())
 	})
 
 	t.Run("call cut", func(t *testing.T) {
 		i := New(nil, nil)
-		assert.NoError(t, i.Exec(`
+		noError(t, i.Exec(`
 foo :- call(true), !.
 foo :- throw(unreachable).
 `))
 		sols, err := i.Query("foo.")
-		assert.NoError(t, err)
-		assert.True(t, sols.Next())
-		assert.False(t, sols.Next())
-		assert.NoError(t, sols.Err())
+		noError(t, err)
+		isTrue(t, sols.Next())
+		isFalse(t, sols.Next())
+		noError(t, sols.Err())
 	})
 
 	t.Run("catch cut", func(t *testing.T) {
 		i := New(nil, nil)
-		assert.NoError(t, i.Exec(`
+		noError(t, i.Exec(`
 foo :- catch(true, _, true), !.
 foo :- throw(unreachable).
 `))
 		sols, err := i.Query("foo.")
-		assert.NoError(t, err)
-		assert.True(t, sols.Next())
-		assert.False(t, sols.Next())
-		assert.NoError(t, sols.Err())
+		noError(t, err)
+		isTrue(t, sols.Next())
+		isFalse(t, sols.Next())
+		noError(t, sols.Err())
 	})
 
 	t.Run("counter", func(t *testing.T) {
 		i := New(nil, nil)
-		assert.NoError(t, i.Exec(`
+		noError(t, i.Exec(`
 :- dynamic(count/1).
 count(0).
 
@@ -1157,37 +1156,37 @@ next(N) :- retract(count(X)), N is X + 1, asserta(count(N)).
 		}
 
 		sols, err := i.Query("next(X).")
-		assert.NoError(t, err)
-		assert.True(t, sols.Next())
-		assert.NoError(t, sols.Scan(&s))
-		assert.Equal(t, 1, s.X)
-		assert.False(t, sols.Next())
-		assert.NoError(t, sols.Err())
-		assert.NoError(t, sols.Close())
+		noError(t, err)
+		isTrue(t, sols.Next())
+		noError(t, sols.Scan(&s))
+		equal(t, 1, s.X)
+		isFalse(t, sols.Next())
+		noError(t, sols.Err())
+		noError(t, sols.Close())
 
 		sols, err = i.Query("next(X).")
-		assert.NoError(t, err)
-		assert.True(t, sols.Next())
-		assert.NoError(t, sols.Scan(&s))
-		assert.Equal(t, 2, s.X)
-		assert.False(t, sols.Next())
-		assert.NoError(t, sols.Err())
-		assert.NoError(t, sols.Close())
+		noError(t, err)
+		isTrue(t, sols.Next())
+		noError(t, sols.Scan(&s))
+		equal(t, 2, s.X)
+		isFalse(t, sols.Next())
+		noError(t, sols.Err())
+		noError(t, sols.Close())
 
 		sols, err = i.Query("next(X).")
-		assert.NoError(t, err)
-		assert.True(t, sols.Next())
-		assert.NoError(t, sols.Scan(&s))
-		assert.Equal(t, 3, s.X)
-		assert.False(t, sols.Next())
-		assert.NoError(t, sols.Err())
-		assert.NoError(t, sols.Close())
+		noError(t, err)
+		isTrue(t, sols.Next())
+		noError(t, sols.Scan(&s))
+		equal(t, 3, s.X)
+		isFalse(t, sols.Next())
+		noError(t, sols.Err())
+		noError(t, sols.Close())
 	})
 }
 
 func TestInterpreter_QuerySolution(t *testing.T) {
 	var i Interpreter
-	assert.NoError(t, i.Exec(`
+	noError(t, i.Exec(`
 foo(a, b).
 foo(b, c).
 foo(c, d).
@@ -1201,32 +1200,32 @@ foo(c, d).
 				X   string
 				Foo string `prolog:"Y"`
 			}
-			assert.NoError(t, sol.Scan(&s))
-			assert.Equal(t, "a", s.X)
-			assert.Equal(t, "b", s.Foo)
+			noError(t, sol.Scan(&s))
+			equal(t, "a", s.X)
+			equal(t, "b", s.Foo)
 		})
 
 		t.Run("map", func(t *testing.T) {
 			sol := i.QuerySolution(`foo(X, Y).`)
 
 			m := map[string]string{}
-			assert.NoError(t, sol.Scan(m))
-			assert.Len(t, m, 2)
-			assert.Equal(t, "a", m["X"])
-			assert.Equal(t, "b", m["Y"])
+			noError(t, sol.Scan(m))
+			hasLen(t, m, 2)
+			equal(t, "a", m["X"])
+			equal(t, "b", m["Y"])
 		})
 	})
 
 	t.Run("invalid query", func(t *testing.T) {
 		sol := i.QuerySolution(``)
-		assert.Error(t, sol.Err())
+		hasError(t, sol.Err())
 	})
 
 	t.Run("no solutions", func(t *testing.T) {
 		sol := i.QuerySolution(`foo(e, f).`)
-		assert.Equal(t, ErrNoSolutions, sol.Err())
+		equal(t, ErrNoSolutions, sol.Err())
 		m := map[string]any{}
-		assert.Equal(t, ErrNoSolutions, sol.Scan(m))
+		equal(t, ErrNoSolutions, sol.Scan(m))
 	})
 
 	t.Run("runtime error", func(t *testing.T) {
@@ -1236,10 +1235,10 @@ foo(c, d).
 			return engine.Error(err)
 		})
 		sol := i.QuerySolution(`error.`)
-		assert.Equal(t, err, sol.Err())
+		equal(t, err, sol.Err())
 
 		var s struct{}
-		assert.Error(t, sol.Scan(&s))
+		hasError(t, sol.Scan(&s))
 	})
 }
 
@@ -1605,8 +1604,8 @@ func ExampleNew_arg() {
 func TestDefaultFS_Open(t *testing.T) {
 	var fs defaultFS
 	f, err := fs.Open("interpreter.go")
-	assert.NoError(t, err)
-	assert.NotNil(t, f)
+	noError(t, err)
+	notNil(t, f)
 }
 
 type readFn func(p []byte) (n int, err error)

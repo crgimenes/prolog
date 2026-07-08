@@ -2,12 +2,11 @@ package engine
 
 import (
 	"bytes"
-	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestIntegerNumber(t *testing.T) {
-	assert.Implements(t, (*Number)(nil), Integer(0))
+	implements(t, (*Number)(nil), Integer(0))
 }
 
 func TestInteger_WriteTerm(t *testing.T) {
@@ -30,8 +29,8 @@ func TestInteger_WriteTerm(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
 			buf.Reset()
-			assert.NoError(t, tt.i.WriteTerm(&buf, &tt.opts, nil))
-			assert.Equal(t, tt.output, buf.String())
+			noError(t, tt.i.WriteTerm(&buf, &tt.opts, nil))
+			equal(t, tt.output, buf.String())
 		})
 	}
 }
@@ -56,7 +55,7 @@ func TestInteger_Compare(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
-			assert.Equal(t, tt.o, tt.i.Compare(tt.t, nil))
+			equal(t, tt.o, tt.i.Compare(tt.t, nil))
 		})
 	}
 }

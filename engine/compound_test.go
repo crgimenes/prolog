@@ -3,8 +3,6 @@ package engine
 import (
 	"bytes"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestWriteCompound(t *testing.T) {
@@ -58,8 +56,8 @@ func TestWriteCompound(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
 			buf.Reset()
-			assert.NoError(t, WriteCompound(&buf, tt.term.(Compound), &tt.opts, env))
-			assert.Equal(t, tt.output, buf.String())
+			noError(t, WriteCompound(&buf, tt.term.(Compound), &tt.opts, env))
+			equal(t, tt.output, buf.String())
 		})
 	}
 }
@@ -86,7 +84,7 @@ func TestCompareCompound(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
-			assert.Equal(t, tt.o, CompareCompound(tt.x.(Compound), tt.y, nil))
+			equal(t, tt.o, CompareCompound(tt.x.(Compound), tt.y, nil))
 		})
 	}
 }
@@ -103,7 +101,7 @@ func TestList(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
-			assert.Equal(t, tt.list, List(tt.elems...))
+			equal(t, tt.list, List(tt.elems...))
 		})
 	}
 }
@@ -123,29 +121,29 @@ func TestPartialList(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
-			assert.Equal(t, tt.list, PartialList(tt.rest, tt.elems...))
+			equal(t, tt.list, PartialList(tt.rest, tt.elems...))
 		})
 	}
 }
 
 func TestEnv_Set(t *testing.T) {
 	env := NewEnv()
-	assert.Equal(t, List(), env.set())
-	assert.Equal(t, List(NewAtom("a")), env.set(NewAtom("a")))
-	assert.Equal(t, List(NewAtom("a")), env.set(NewAtom("a"), NewAtom("a"), NewAtom("a")))
-	assert.Equal(t, List(NewAtom("a"), NewAtom("b"), NewAtom("c")), env.set(NewAtom("c"), NewAtom("b"), NewAtom("a")))
+	equal(t, List(), env.set())
+	equal(t, List(NewAtom("a")), env.set(NewAtom("a")))
+	equal(t, List(NewAtom("a")), env.set(NewAtom("a"), NewAtom("a"), NewAtom("a")))
+	equal(t, List(NewAtom("a"), NewAtom("b"), NewAtom("c")), env.set(NewAtom("c"), NewAtom("b"), NewAtom("a")))
 }
 
 func TestSeq(t *testing.T) {
-	assert.Equal(t, NewAtom("a"), seq(atomComma, NewAtom("a")))
-	assert.Equal(t, &compound{
+	equal(t, NewAtom("a"), seq(atomComma, NewAtom("a")))
+	equal(t, &compound{
 		functor: atomComma,
 		args: []Term{
 			NewAtom("a"),
 			NewAtom("b"),
 		},
 	}, seq(atomComma, NewAtom("a"), NewAtom("b")))
-	assert.Equal(t, &compound{
+	equal(t, &compound{
 		functor: atomComma,
 		args: []Term{
 			NewAtom("a"),
@@ -161,39 +159,39 @@ func TestSeq(t *testing.T) {
 }
 
 func TestCharList(t *testing.T) {
-	assert.Equal(t, atomEmptyList, CharList(""))
-	assert.Equal(t, charList("abc"), CharList("abc"))
+	equal(t, atomEmptyList, CharList(""))
+	equal(t, charList("abc"), CharList("abc"))
 }
 
 func TestCharList_String(t *testing.T) {
-	assert.Equal(t, "abc", CharList("abc").(charList).String())
+	equal(t, "abc", CharList("abc").(charList).String())
 }
 
 func TestCharList_WriteTerm(t *testing.T) {
 	var b bytes.Buffer
-	assert.NoError(t, CharList("abc").WriteTerm(&b, &WriteOptions{}, nil))
-	assert.Equal(t, `[a,b,c]`, b.String())
+	noError(t, CharList("abc").WriteTerm(&b, &WriteOptions{}, nil))
+	equal(t, `[a,b,c]`, b.String())
 }
 
 func TestCharList_Compare(t *testing.T) {
-	assert.Equal(t, 0, CharList("abc").Compare(List(NewAtom("a"), NewAtom("b"), NewAtom("c")), nil))
+	equal(t, 0, CharList("abc").Compare(List(NewAtom("a"), NewAtom("b"), NewAtom("c")), nil))
 }
 
 func TestCodeList(t *testing.T) {
-	assert.Equal(t, atomEmptyList, CodeList(""))
-	assert.Equal(t, codeList("abc"), CodeList("abc"))
+	equal(t, atomEmptyList, CodeList(""))
+	equal(t, codeList("abc"), CodeList("abc"))
 }
 
 func TestCodeList_String(t *testing.T) {
-	assert.Equal(t, "abc", CodeList("abc").(codeList).String())
+	equal(t, "abc", CodeList("abc").(codeList).String())
 }
 
 func TestCodeList_WriteTerm(t *testing.T) {
 	var b bytes.Buffer
-	assert.NoError(t, CodeList("abc").WriteTerm(&b, &WriteOptions{}, nil))
-	assert.Equal(t, `[97,98,99]`, b.String())
+	noError(t, CodeList("abc").WriteTerm(&b, &WriteOptions{}, nil))
+	equal(t, `[97,98,99]`, b.String())
 }
 
 func TestCodeList_Compare(t *testing.T) {
-	assert.Equal(t, 0, CodeList("abc").Compare(List(Integer('a'), Integer('b'), Integer('c')), nil))
+	equal(t, 0, CodeList("abc").Compare(List(Integer('a'), Integer('b'), Integer('c')), nil))
 }

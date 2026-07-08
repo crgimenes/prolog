@@ -5,8 +5,6 @@ import (
 	"io"
 	"strings"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestLexer_Token(t *testing.T) {
@@ -198,8 +196,8 @@ a quoted ident"`}},
 			l := Lexer{input: newRuneRingBuffer(noMonkeyReader{strings.NewReader(tt.input)}), charConversions: tt.charConversions}
 
 			token, err := l.Token()
-			assert.Equal(t, tt.token, token)
-			assert.Equal(t, tt.err, err)
+			equal(t, tt.token, token)
+			equal(t, tt.err, err)
 		})
 	}
 }
@@ -219,5 +217,5 @@ func (n noMonkeyReader) ReadRune() (rune, int, error) {
 }
 
 func TestTokenKind_GoString(t *testing.T) {
-	assert.Equal(t, "invalid", tokenInvalid.GoString())
+	equal(t, "invalid", tokenInvalid.GoString())
 }

@@ -3,8 +3,6 @@ package engine
 import (
 	"context"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestPromise_Force(t *testing.T) {
@@ -43,10 +41,10 @@ func TestPromise_Force(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
 		res = nil
 		ok, err := k.Force(context.Background())
-		assert.NoError(t, err)
-		assert.True(t, ok)
+		noError(t, err)
+		isTrue(t, ok)
 
-		assert.Equal(t, []int{1, 2, 3, 4, 5, 6}, res)
+		equal(t, []int{1, 2, 3, 4, 5, 6}, res)
 	})
 
 	t.Run("canceled", func(t *testing.T) {
@@ -54,10 +52,10 @@ func TestPromise_Force(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel()
 		ok, err := k.Force(ctx)
-		assert.Error(t, err)
-		assert.False(t, ok)
+		hasError(t, err)
+		isFalse(t, ok)
 
-		assert.Empty(t, res)
+		isEmpty(t, res)
 	})
 
 	t.Run("repeat", func(t *testing.T) {
@@ -68,8 +66,8 @@ func TestPromise_Force(t *testing.T) {
 		})
 
 		ok, err := k.Force(context.Background())
-		assert.NoError(t, err)
-		assert.True(t, ok)
-		assert.Equal(t, 10, count)
+		noError(t, err)
+		isTrue(t, ok)
+		equal(t, 10, count)
 	})
 }

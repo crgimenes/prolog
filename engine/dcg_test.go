@@ -3,8 +3,6 @@ package engine
 import (
 	"context"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestVM_Phrase(t *testing.T) {
@@ -21,16 +19,16 @@ func TestVM_Phrase(t *testing.T) {
 
 		s0, s := NewVariable(), NewVariable()
 		ok, err := Phrase(&vm, NewAtom("a"), s0, s, Success, nil).Force(context.Background())
-		assert.NoError(t, err)
-		assert.True(t, ok)
+		noError(t, err)
+		isTrue(t, ok)
 
-		assert.True(t, called)
+		isTrue(t, called)
 	})
 
 	t.Run("failed", func(t *testing.T) {
 		s0, s := NewVariable(), NewVariable()
 		var vm VM
 		_, err := Phrase(&vm, Integer(0), s0, s, Success, nil).Force(context.Background())
-		assert.Error(t, err)
+		hasError(t, err)
 	})
 }

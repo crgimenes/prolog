@@ -7,8 +7,6 @@ import (
 	"io"
 	"io/fs"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 //go:embed testdata
@@ -454,10 +452,10 @@ bar(b).
 			}
 			vm.FS = testdata
 			vm.Register1(NewAtom("throw"), Throw)
-			assert.Equal(t, tt.err, vm.Compile(context.Background(), tt.text, tt.args...))
+			equal(t, tt.err, vm.Compile(context.Background(), tt.text, tt.args...))
 			if tt.err == nil {
 				delete(vm.procedures, procedureIndicator{name: NewAtom("throw"), arity: 1})
-				assert.Equal(t, tt.result, vm.procedures)
+				equal(t, tt.result, vm.procedures)
 			}
 		})
 	}
@@ -497,13 +495,13 @@ func TestVM_Consult(t *testing.T) {
 				FS: testdata,
 			}
 			ok, err := Consult(&vm, tt.files, Success, nil).Force(context.Background())
-			assert.Equal(t, tt.ok, ok)
+			equal(t, tt.ok, ok)
 			e, ok2 := tt.err.(Exception)
 			if ok2 {
 				_, ok := NewEnv().Unify(e.Term(), err.(Exception).Term())
-				assert.True(t, ok)
+				isTrue(t, ok)
 			} else {
-				assert.Equal(t, tt.err, err)
+				equal(t, tt.err, err)
 			}
 		})
 	}
@@ -511,5 +509,5 @@ func TestVM_Consult(t *testing.T) {
 
 func TestDiscontiguousError_Error(t *testing.T) {
 	e := discontiguousError{pi: procedureIndicator{name: NewAtom("foo"), arity: 1}}
-	assert.Equal(t, "foo/1 is discontiguous", e.Error())
+	equal(t, "foo/1 is discontiguous", e.Error())
 }

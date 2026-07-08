@@ -4,15 +4,13 @@ import (
 	"fmt"
 	"math/rand"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestEnv_Bind(t *testing.T) {
 	a := NewVariable()
 
 	var env *Env
-	assert.Equal(t, &Env{
+	equal(t, &Env{
 		color: black,
 		left: &Env{
 			binding: binding{
@@ -49,8 +47,8 @@ func TestEnv_Lookup(t *testing.T) {
 	for _, v := range vars {
 		t.Run(fmt.Sprintf("_%d", v), func(t *testing.T) {
 			w, ok := env.lookup(v)
-			assert.True(t, ok)
-			assert.Equal(t, v, w)
+			isTrue(t, ok)
+			equal(t, v, w)
 		})
 	}
 }
@@ -62,25 +60,25 @@ func TestEnv_Simplify(t *testing.T) {
 	env := NewEnv().bind(l, p)
 	c := env.simplify(l)
 	iter := ListIterator{List: c, Env: env}
-	assert.True(t, iter.Next())
-	assert.Equal(t, NewAtom("a"), iter.Current())
-	assert.True(t, iter.Next())
-	assert.Equal(t, NewAtom("b"), iter.Current())
-	assert.False(t, iter.Next())
+	isTrue(t, iter.Next())
+	equal(t, NewAtom("a"), iter.Current())
+	isTrue(t, iter.Next())
+	equal(t, NewAtom("b"), iter.Current())
+	isFalse(t, iter.Next())
 	suffix, ok := iter.Suffix().(*partial)
-	assert.True(t, ok)
-	assert.Equal(t, atomDot, suffix.Functor())
-	assert.Equal(t, 2, suffix.Arity())
+	isTrue(t, ok)
+	equal(t, atomDot, suffix.Functor())
+	equal(t, 2, suffix.Arity())
 }
 
 func TestContains(t *testing.T) {
 	var env *Env
-	assert.True(t, contains(NewAtom("a"), NewAtom("a"), env))
-	assert.False(t, contains(NewVariable(), NewAtom("a"), env))
+	isTrue(t, contains(NewAtom("a"), NewAtom("a"), env))
+	isFalse(t, contains(NewVariable(), NewAtom("a"), env))
 	v := NewVariable()
 	env = env.bind(v, NewAtom("a"))
-	assert.True(t, contains(v, NewAtom("a"), env))
-	assert.True(t, contains(&compound{functor: NewAtom("a")}, NewAtom("a"), env))
-	assert.True(t, contains(&compound{functor: NewAtom("f"), args: []Term{NewAtom("a")}}, NewAtom("a"), env))
-	assert.False(t, contains(&compound{functor: NewAtom("f")}, NewAtom("a"), env))
+	isTrue(t, contains(v, NewAtom("a"), env))
+	isTrue(t, contains(&compound{functor: NewAtom("a")}, NewAtom("a"), env))
+	isTrue(t, contains(&compound{functor: NewAtom("f"), args: []Term{NewAtom("a")}}, NewAtom("a"), env))
+	isFalse(t, contains(&compound{functor: NewAtom("f")}, NewAtom("a"), env))
 }

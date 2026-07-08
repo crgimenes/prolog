@@ -5,8 +5,6 @@ import (
 	"io"
 	"strings"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestParser_Term(t *testing.T) {
@@ -167,16 +165,16 @@ func TestParser_Term(t *testing.T) {
 				doubleQuotes: tc.doubleQuotes,
 			}
 			term, err := p.Term()
-			assert.Equal(t, tc.err, err)
+			equal(t, tc.err, err)
 			if tc.termLazy == nil {
-				assert.Equal(t, tc.term, term)
+				equal(t, tc.term, term)
 			} else {
-				assert.Equal(t, tc.termLazy(), term)
+				equal(t, tc.termLazy(), term)
 			}
 			if tc.vars == nil {
-				assert.Empty(t, p.Vars)
+				isEmpty(t, p.Vars)
 			} else {
-				assert.Equal(t, tc.vars(), p.Vars)
+				equal(t, tc.vars(), p.Vars)
 			}
 		})
 	}
@@ -241,15 +239,15 @@ func TestParser_Replace(t *testing.T) {
 				},
 			}
 			err := p.SetPlaceholder(NewAtom("?"), tt.args...)
-			assert.Equal(t, tt.err, err)
+			equal(t, tt.err, err)
 
 			if err != nil {
 				return
 			}
 
 			term, err := p.Term()
-			assert.Equal(t, tt.termErr, err)
-			assert.Equal(t, tt.term, term)
+			equal(t, tt.termErr, err)
+			equal(t, tt.term, term)
 		})
 	}
 }
@@ -301,8 +299,8 @@ func TestParser_Number(t *testing.T) {
 				},
 			}
 			n, err := p.number()
-			assert.Equal(t, tc.err, err)
-			assert.Equal(t, tc.number, n)
+			equal(t, tc.err, err)
+			equal(t, tc.number, n)
 		})
 	}
 }
@@ -314,13 +312,13 @@ func TestParser_More(t *testing.T) {
 		},
 	}
 	term, err := p.Term()
-	assert.NoError(t, err)
-	assert.Equal(t, NewAtom("foo"), term)
-	assert.True(t, p.More())
+	noError(t, err)
+	equal(t, NewAtom("foo"), term)
+	isTrue(t, p.More())
 	term, err = p.Term()
-	assert.NoError(t, err)
-	assert.Equal(t, NewAtom("bar"), term)
-	assert.False(t, p.More())
+	noError(t, err)
+	equal(t, NewAtom("bar"), term)
+	isFalse(t, p.More())
 }
 
 // TestParserDepthLimit guards against unbounded parser recursion: a

@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"io"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestVariable_WriteTerm(t *testing.T) {
@@ -29,8 +27,8 @@ func TestVariable_WriteTerm(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
 			buf.Reset()
-			assert.NoError(t, tt.v.WriteTerm(&buf, &tt.opts, nil))
-			assert.Equal(t, tt.output, buf.String())
+			noError(t, tt.v.WriteTerm(&buf, &tt.opts, nil))
+			equal(t, tt.output, buf.String())
 		})
 	}
 }
@@ -55,7 +53,7 @@ func TestVariable_Compare(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
-			assert.Equal(t, tt.o, tt.v.Compare(tt.t, nil))
+			equal(t, tt.o, tt.v.Compare(tt.t, nil))
 		})
 	}
 }
@@ -87,7 +85,7 @@ func Test_variableSet(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		assert.Equal(t, tt.s, newVariableSet(tt.term, nil))
+		equal(t, tt.s, newVariableSet(tt.term, nil))
 	}
 }
 
@@ -114,7 +112,7 @@ func Test_existentialVariableSet(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		assert.Equal(t, tt.ev, newExistentialVariablesSet(tt.term, nil))
+		equal(t, tt.ev, newExistentialVariablesSet(tt.term, nil))
 	}
 }
 
@@ -138,6 +136,6 @@ func Test_freeVariablesSet(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		assert.Equal(t, tt.fv, newFreeVariablesSet(tt.t, tt.v, nil))
+		equal(t, tt.fv, newFreeVariablesSet(tt.t, tt.v, nil))
 	}
 }

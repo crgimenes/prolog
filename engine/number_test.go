@@ -5,9 +5,6 @@ import (
 	"io"
 	"math"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestIs(t *testing.T) {
@@ -283,8 +280,8 @@ func TestIs(t *testing.T) {
 		t.Run(tt.title, func(t *testing.T) {
 			var vm VM
 			ok, err := Is(&vm, tt.result, tt.expression, Success, nil).Force(context.Background())
-			assert.Equal(t, tt.ok, ok)
-			assert.Equal(t, tt.err, err)
+			equal(t, tt.ok, ok)
+			equal(t, tt.err, err)
 		})
 	}
 }
@@ -294,45 +291,45 @@ func TestEqual(t *testing.T) {
 	t.Run("integer", func(t *testing.T) {
 		t.Run("integer", func(t *testing.T) {
 			ok, err := Equal(&vm, Integer(1), Integer(1), Success, nil).Force(context.Background())
-			assert.NoError(t, err)
-			assert.True(t, ok)
+			noError(t, err)
+			isTrue(t, ok)
 		})
 
 		t.Run("float", func(t *testing.T) {
 			ok, err := Equal(&vm, Integer(1), Float(1), Success, nil).Force(context.Background())
-			assert.NoError(t, err)
-			assert.True(t, ok)
+			noError(t, err)
+			isTrue(t, ok)
 		})
 	})
 
 	t.Run("float", func(t *testing.T) {
 		t.Run("integer", func(t *testing.T) {
 			ok, err := Equal(&vm, Float(1), Integer(1), Success, nil).Force(context.Background())
-			assert.NoError(t, err)
-			assert.True(t, ok)
+			noError(t, err)
+			isTrue(t, ok)
 		})
 
 		t.Run("float", func(t *testing.T) {
 			ok, err := Equal(&vm, Float(1), Float(1), Success, nil).Force(context.Background())
-			assert.NoError(t, err)
-			assert.True(t, ok)
+			noError(t, err)
+			isTrue(t, ok)
 		})
 	})
 
 	t.Run("e1 is a variable", func(t *testing.T) {
 		_, err := Equal(&vm, Integer(1), NewVariable(), Success, nil).Force(context.Background())
-		assert.Error(t, err)
+		hasError(t, err)
 	})
 
 	t.Run("e2 is a variable", func(t *testing.T) {
 		_, err := Equal(&vm, NewVariable(), Integer(1), Success, nil).Force(context.Background())
-		assert.Error(t, err)
+		hasError(t, err)
 	})
 
 	t.Run("ng", func(t *testing.T) {
 		ok, err := Equal(&vm, Integer(1), Integer(2), Success, nil).Force(context.Background())
-		assert.NoError(t, err)
-		assert.False(t, ok)
+		noError(t, err)
+		isFalse(t, ok)
 	})
 }
 
@@ -357,8 +354,8 @@ func TestNotEqual(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
 			ok, err := NotEqual(nil, tt.e1, tt.e2, Success, nil).Force(context.Background())
-			assert.Equal(t, tt.ok, ok)
-			assert.Equal(t, tt.err, err)
+			equal(t, tt.ok, ok)
+			equal(t, tt.err, err)
 		})
 	}
 }
@@ -384,8 +381,8 @@ func TestLessThan(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
 			ok, err := LessThan(nil, tt.e1, tt.e2, Success, nil).Force(context.Background())
-			assert.Equal(t, tt.ok, ok)
-			assert.Equal(t, tt.err, err)
+			equal(t, tt.ok, ok)
+			equal(t, tt.err, err)
 		})
 	}
 }
@@ -411,8 +408,8 @@ func TestGreaterThan(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
 			ok, err := GreaterThan(nil, tt.e1, tt.e2, Success, nil).Force(context.Background())
-			assert.Equal(t, tt.ok, ok)
-			assert.Equal(t, tt.err, err)
+			equal(t, tt.ok, ok)
+			equal(t, tt.err, err)
 		})
 	}
 }
@@ -438,8 +435,8 @@ func TestLessThanOrEqual(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
 			ok, err := LessThanOrEqual(nil, tt.e1, tt.e2, Success, nil).Force(context.Background())
-			assert.Equal(t, tt.ok, ok)
-			assert.Equal(t, tt.err, err)
+			equal(t, tt.ok, ok)
+			equal(t, tt.err, err)
 		})
 	}
 }
@@ -465,28 +462,26 @@ func TestGreaterThanOrEqual(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
 			ok, err := GreaterThanOrEqual(nil, tt.e1, tt.e2, Success, nil).Force(context.Background())
-			assert.Equal(t, tt.ok, ok)
-			assert.Equal(t, tt.err, err)
+			equal(t, tt.ok, ok)
+			equal(t, tt.err, err)
 		})
 	}
 }
 
-type mockNumber struct {
-	mock.Mock
+// mockNumber is a Number that is neither Integer nor Float, used to drive the
+// "unsupported operand" paths in arithmetic evaluation. Those paths reject it
+// before ever calling its methods, so the methods just satisfy the interface
+// and panic if a change unexpectedly reaches them.
+type mockNumber struct{}
+
+func (mockNumber) number() {}
+
+func (mockNumber) WriteTerm(io.Writer, *WriteOptions, *Env) error {
+	panic("mockNumber.WriteTerm called")
 }
 
-func (m *mockNumber) number() {
-	_ = m.Called()
-}
-
-func (m *mockNumber) WriteTerm(w io.Writer, opts *WriteOptions, env *Env) error {
-	args := m.Called(w, opts, env)
-	return args.Error(0)
-}
-
-func (m *mockNumber) Compare(t Term, env *Env) int {
-	args := m.Called(t, env)
-	return args.Int(0)
+func (mockNumber) Compare(Term, *Env) int {
+	panic("mockNumber.Compare called")
 }
 
 // TestFloatMulDivNegativeOperands is a regression test: the overflow

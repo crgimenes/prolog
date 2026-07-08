@@ -2,7 +2,6 @@ package engine
 
 import (
 	"errors"
-	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -10,17 +9,19 @@ func TestErrWriter_Write(t *testing.T) {
 	var failed = errors.New("failed")
 
 	var m mockWriter
-	m.On("Write", []byte("foo")).Return(0, failed).Once()
-	defer m.AssertExpectations(t)
+	m.err = failed
 
 	ew := errWriter{w: &m}
 	_, err := ew.Write([]byte("foo"))
-	assert.NoError(t, err)
+	noError(t, err)
 	_, err = ew.Write([]byte("bar"))
-	assert.NoError(t, err)
+	noError(t, err)
 	_, err = ew.Write([]byte("baz"))
-	assert.NoError(t, err)
-	assert.Equal(t, failed, ew.err)
+	noError(t, err)
+	equal(t, failed, ew.err)
+
+	// Once it has seen an error, errWriter stops touching the wrapped writer.
+	equal(t, 1, m.writes)
 }
 
 func TestCompareAtomic(t *testing.T) {
@@ -58,6 +59,6 @@ func TestCompareAtomic(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		assert.Equal(t, tt.o, CompareAtomic[*y](tt.a, tt.t, tt.cmp, nil))
+		equal(t, tt.o, CompareAtomic[*y](tt.a, tt.t, tt.cmp, nil))
 	}
 }

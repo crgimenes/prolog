@@ -1,42 +1,55 @@
-*Attention*: This project started as a fork of [ichiban/prolog](https://github.com/ichiban/prolog) and is not affiliated with the original project.
+# prolog
 
-It now deliberately diverges from upstream and is developed independently — it is the embeddable Prolog used across my own projects (for example as the semantics oracle in [filo](https://github.com/crgimenes/filo)'s conformance tests). It may contain breaking changes without notice.
+[![test](https://github.com/crgimenes/prolog/actions/workflows/ci.yml/badge.svg)](https://github.com/crgimenes/prolog/actions/workflows/ci.yml)
 
----
+An embeddable ISO-ish Prolog interpreter for Go, with a `database/sql`-style API:
+`Exec` loads clauses, `Query` runs a goal, `Scan` pulls the variable bindings
+back into a Go struct.
 
-### Install latest version
+I use it as the semantics oracle in [filo](https://github.com/crgimenes/filo)'s
+conformance tests. Filo's evaluation rules are written as Prolog relations — an
+executable spec — and thousands of expressions get evaluated on both sides and
+compared. That job set the priorities here: get the arithmetic and term
+machinery right, and never let an untrusted program take down the host.
+
+Running untrusted input is a first-class concern. The parser bounds its
+recursion depth, so a malformed term like `[*` can't blow the stack, and the
+integer/rune conversions range-check before they narrow. Both were real bugs,
+found by fuzzing and fixed.
+
+## Install
 
 ```console
 go get -u github.com/crgimenes/prolog
 ```
 
-### Usage
+## Usage
 
-#### Instantiate an interpreter
+### Instantiate an interpreter
 
 ```go
-p := prolog.New(os.Stdin, os.Stdout) // Or `prolog.New(nil, nil)` if you don't need user_input/user_output.
+p := prolog.New(os.Stdin, os.Stdout) // Or prolog.New(nil, nil) if you don't need user_input/user_output.
 ```
 
-Or, if you want a sandbox interpreter without any built-in predicates:
+For a sandbox with no built-in predicates at all, start from a bare interpreter
+(see [examples/sandboxing/main.go](examples/sandboxing/main.go)):
 
 ```go
-// See examples/sandboxing/main.go for details.
 p := new(prolog.Interpreter)
 ```
 
-#### Load a Prolog program
+### Load a program
 
 ```go
 if err := p.Exec(`
-	human(socrates).       % This is a fact.
-	mortal(X) :- human(X). % This is a rule.
+	human(socrates).       % A fact.
+	mortal(X) :- human(X). % A rule.
 `); err != nil {
 	panic(err)
 }
 ```
 
-Similar to `database/sql`, you can use placeholder `?` to insert Go data as Prolog data.
+Like `database/sql`, `?` is a placeholder for injecting Go values as Prolog data:
 
 ```go
 if err := p.Exec(`human(?).`, "socrates"); err != nil { // Same as p.Exec(`human("socrates").`)
@@ -44,7 +57,7 @@ if err := p.Exec(`human(?).`, "socrates"); err != nil { // Same as p.Exec(`human
 }
 ```
 
-#### Run the Prolog program
+### Run a query
 
 ```go
 sols, err := p.Query(`mortal(?).`, "socrates") // Same as p.Query(`mortal("socrates").`)
@@ -53,18 +66,17 @@ if err != nil {
 }
 defer sols.Close()
 
-// Iterates over solutions.
 for sols.Next() {
 	fmt.Printf("Yes.\n") // ==> Yes.
 }
 
-// Check if an error occurred while querying.
 if err := sols.Err(); err != nil {
 	panic(err)
 }
 ```
 
-Or, if you want to query for the variable values for each solution:
+To read the variable bindings out of each solution, scan into a struct whose
+field names match the query variables:
 
 ```go
 sols, err := p.Query(`mortal(Who).`)
@@ -73,9 +85,7 @@ if err != nil {
 }
 defer sols.Close()
 
-// Iterates over solutions.
 for sols.Next() {
-	// Prepare a struct with fields which name corresponds with a variable in the query.
 	var s struct {
 		Who string
 	}
@@ -85,9 +95,28 @@ for sols.Next() {
 	fmt.Printf("Who = %s\n", s.Who) // ==> Who = socrates
 }
 
-// Check if an error occurred while querying.
 if err := sols.Err(); err != nil {
 	panic(err)
 }
 ```
 
+Two behaviors worth knowing before you rely on them. `Scan` does not convert
+between Integer and Float: a Prolog integer won't fill a `float64` field, and a
+float won't fill an `int64`. And `mod` is floored while `rem` is truncated —
+`rem` matches Go's `math.Mod`.
+
+## Examples
+
+The [examples/](examples/) directory covers embedding Prolog into Go, calling Go
+back from Prolog, DCG, the Towers of Hanoi, custom initialization, and a
+locked-down sandbox.
+
+## Acknowledgments
+
+This started as a fork of [ichiban/prolog](https://github.com/ichiban/prolog) by
+Yutaka Ichibangase, and the `database/sql`-style API is his design. It has since
+diverged into its own codebase, with its own bug fixes, hardening, and
+priorities, and is not affiliated with or endorsed by the original project. It
+carries breaking changes without notice. The original MIT license and copyright
+are kept in [LICENSE](LICENSE). Thanks to the upstream authors for the
+foundation.

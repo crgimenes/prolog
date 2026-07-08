@@ -2,7 +2,6 @@ package engine
 
 import (
 	"bytes"
-	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -35,8 +34,8 @@ func TestAtom_WriteTerm(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			buf.Reset()
-			assert.NoError(t, NewAtom(tt.name).WriteTerm(&buf, &tt.opts, nil))
-			assert.Equal(t, tt.output, buf.String())
+			noError(t, NewAtom(tt.name).WriteTerm(&buf, &tt.opts, nil))
+			equal(t, tt.output, buf.String())
 		})
 	}
 }
@@ -61,7 +60,7 @@ func TestAtom_Compare(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
-			assert.Equal(t, tt.o, tt.a.Compare(tt.t, nil))
+			equal(t, tt.o, tt.a.Compare(tt.t, nil))
 		})
 	}
 }
