@@ -1313,11 +1313,15 @@ func Open(vm *VM, sourceSink, mode, stream, options Term, k Cont, env *Env) *Pro
 	for iter.Next() {
 		err := handleStreamOption(vm, &s, iter.Current(), env)
 		if err != nil {
+			// The file is already open; don't leak the descriptor on a bad
+			// option. On Windows an open handle also blocks the file's removal.
+			_ = s.Close()
 			return Error(err)
 		}
 	}
 	err := iter.Err()
 	if err != nil {
+		_ = s.Close()
 		return Error(err)
 	}
 

@@ -3265,6 +3265,15 @@ func TestSetOutput(t *testing.T) {
 	}
 }
 
+// closeStreams releases every stream the VM still holds open. Windows refuses
+// to remove a file while a handle to it is open, so tests that open a temp file
+// through Open must close the resulting streams before deleting it.
+func closeStreams(vm *VM) {
+	for _, s := range append([]*Stream(nil), vm.streams.elems...) {
+		_ = s.Close()
+	}
+}
+
 func TestOpen(t *testing.T) {
 	var vm VM
 
@@ -3274,6 +3283,7 @@ func TestOpen(t *testing.T) {
 		defer func() {
 			noError(t, os.Remove(f.Name()))
 		}()
+		defer closeStreams(&vm)
 
 		_, err = fmt.Fprintf(f, "test\n")
 		noError(t, err)
@@ -3316,6 +3326,7 @@ func TestOpen(t *testing.T) {
 				s, ok := ref.(*Stream)
 				isTrue(t, ok)
 				equal(t, streamTypeText, s.streamType)
+				_ = s.Close()
 				return Bool(true)
 			}, nil).Force(context.Background())
 			noError(t, err)
@@ -3333,6 +3344,7 @@ func TestOpen(t *testing.T) {
 				s, ok := ref.(*Stream)
 				isTrue(t, ok)
 				equal(t, streamTypeBinary, s.streamType)
+				_ = s.Close()
 				return Bool(true)
 			}, nil).Force(context.Background())
 			noError(t, err)
@@ -3350,6 +3362,7 @@ func TestOpen(t *testing.T) {
 				s, ok := ref.(*Stream)
 				isTrue(t, ok)
 				isTrue(t, s.reposition)
+				_ = s.Close()
 				return Bool(true)
 			}, nil).Force(context.Background())
 			noError(t, err)
@@ -3367,6 +3380,7 @@ func TestOpen(t *testing.T) {
 				s, ok := ref.(*Stream)
 				isTrue(t, ok)
 				isFalse(t, s.reposition)
+				_ = s.Close()
 				return Bool(true)
 			}, nil).Force(context.Background())
 			noError(t, err)
@@ -3384,6 +3398,7 @@ func TestOpen(t *testing.T) {
 				s, ok := ref.(*Stream)
 				isTrue(t, ok)
 				equal(t, eofActionError, s.eofAction)
+				_ = s.Close()
 				return Bool(true)
 			}, nil).Force(context.Background())
 			noError(t, err)
@@ -3401,6 +3416,7 @@ func TestOpen(t *testing.T) {
 				s, ok := ref.(*Stream)
 				isTrue(t, ok)
 				equal(t, eofActionEOFCode, s.eofAction)
+				_ = s.Close()
 				return Bool(true)
 			}, nil).Force(context.Background())
 			noError(t, err)
@@ -3418,6 +3434,7 @@ func TestOpen(t *testing.T) {
 				s, ok := ref.(*Stream)
 				isTrue(t, ok)
 				equal(t, eofActionReset, s.eofAction)
+				_ = s.Close()
 				return Bool(true)
 			}, nil).Force(context.Background())
 			noError(t, err)
@@ -3482,6 +3499,7 @@ func TestOpen(t *testing.T) {
 		defer func() {
 			noError(t, os.Remove(n))
 		}()
+		defer closeStreams(&vm)
 
 		v := NewVariable()
 
@@ -3523,6 +3541,7 @@ func TestOpen(t *testing.T) {
 		defer func() {
 			noError(t, os.Remove(f.Name()))
 		}()
+		defer closeStreams(&vm)
 
 		_, err = fmt.Fprintf(f, "test\n")
 		noError(t, err)
@@ -3572,7 +3591,7 @@ func TestOpen(t *testing.T) {
 
 	t.Run("mode is a variable", func(t *testing.T) {
 		var vm VM
-		ok, err := Open(&vm, NewAtom("/dev/null"), NewVariable(), NewVariable(), List(), Success, nil).Force(context.Background())
+		ok, err := Open(&vm, NewAtom(os.DevNull), NewVariable(), NewVariable(), List(), Success, nil).Force(context.Background())
 		equal(t, InstantiationError(nil), err)
 		isFalse(t, ok)
 	})
@@ -3580,7 +3599,7 @@ func TestOpen(t *testing.T) {
 	t.Run("options is a partial list or a list with an element E which is a variable", func(t *testing.T) {
 		t.Run("partial list", func(t *testing.T) {
 			var vm VM
-			ok, err := Open(&vm, NewAtom("/dev/null"), atomRead, NewVariable(), PartialList(NewVariable(),
+			ok, err := Open(&vm, NewAtom(os.DevNull), atomRead, NewVariable(), PartialList(NewVariable(),
 				atomType.Apply(atomText),
 				atomAlias.Apply(NewAtom("foo")),
 			), Success, nil).Force(context.Background())
@@ -3590,7 +3609,7 @@ func TestOpen(t *testing.T) {
 
 		t.Run("variable element", func(t *testing.T) {
 			var vm VM
-			ok, err := Open(&vm, NewAtom("/dev/null"), atomRead, NewVariable(), List(
+			ok, err := Open(&vm, NewAtom(os.DevNull), atomRead, NewVariable(), List(
 				NewVariable(),
 				&compound{functor: atomType, args: []Term{atomText}},
 				&compound{functor: atomAlias, args: []Term{NewAtom("foo")}},
@@ -3602,21 +3621,21 @@ func TestOpen(t *testing.T) {
 
 	t.Run("mode is neither a variable nor an atom", func(t *testing.T) {
 		var vm VM
-		ok, err := Open(&vm, NewAtom("/dev/null"), Integer(0), NewVariable(), List(), Success, nil).Force(context.Background())
+		ok, err := Open(&vm, NewAtom(os.DevNull), Integer(0), NewVariable(), List(), Success, nil).Force(context.Background())
 		equal(t, typeError(validTypeAtom, Integer(0), nil), err)
 		isFalse(t, ok)
 	})
 
 	t.Run("options is neither a partial list nor a list", func(t *testing.T) {
 		var vm VM
-		ok, err := Open(&vm, NewAtom("/dev/null"), atomRead, NewVariable(), NewAtom("list"), Success, nil).Force(context.Background())
+		ok, err := Open(&vm, NewAtom(os.DevNull), atomRead, NewVariable(), NewAtom("list"), Success, nil).Force(context.Background())
 		equal(t, typeError(validTypeList, NewAtom("list"), nil), err)
 		isFalse(t, ok)
 	})
 
 	t.Run("stream is not a variable", func(t *testing.T) {
 		var vm VM
-		ok, err := Open(&vm, NewAtom("/dev/null"), atomRead, NewAtom("stream"), List(), Success, nil).Force(context.Background())
+		ok, err := Open(&vm, NewAtom(os.DevNull), atomRead, NewAtom("stream"), List(), Success, nil).Force(context.Background())
 		equal(t, InstantiationError(nil), err)
 		isFalse(t, ok)
 	})
@@ -3630,7 +3649,7 @@ func TestOpen(t *testing.T) {
 
 	t.Run("mode is an atom but not an input/output mode", func(t *testing.T) {
 		var vm VM
-		ok, err := Open(&vm, NewAtom("/dev/null"), NewAtom("foo"), NewVariable(), List(), Success, nil).Force(context.Background())
+		ok, err := Open(&vm, NewAtom(os.DevNull), NewAtom("foo"), NewVariable(), List(), Success, nil).Force(context.Background())
 		equal(t, domainError(validDomainIOMode, NewAtom("foo"), nil), err)
 		isFalse(t, ok)
 	})
@@ -3645,7 +3664,7 @@ func TestOpen(t *testing.T) {
 			&compound{functor: atomReposition, args: []Term{Integer(0)}},
 			&compound{functor: atomEOFAction, args: []Term{Integer(0)}},
 		} {
-			ok, err := Open(&vm, NewAtom("/dev/null"), atomRead, NewVariable(), List(o), Success, nil).Force(context.Background())
+			ok, err := Open(&vm, NewAtom(os.DevNull), atomRead, NewVariable(), List(o), Success, nil).Force(context.Background())
 			equal(t, domainError(validDomainStreamOption, o, nil), err)
 			isFalse(t, ok)
 		}
@@ -3661,7 +3680,7 @@ func TestOpen(t *testing.T) {
 			&compound{functor: atomReposition, args: []Term{NewVariable()}},
 			&compound{functor: atomEOFAction, args: []Term{NewVariable()}},
 		} {
-			ok, err := Open(&vm, NewAtom("/dev/null"), atomRead, NewVariable(), List(o), Success, nil).Force(context.Background())
+			ok, err := Open(&vm, NewAtom(os.DevNull), atomRead, NewVariable(), List(o), Success, nil).Force(context.Background())
 			equal(t, InstantiationError(nil), err)
 			isFalse(t, ok)
 		}
