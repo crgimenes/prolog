@@ -7,8 +7,8 @@ An embeddable ISO-ish Prolog interpreter for Go, with a `database/sql`-style API
 back into a Go struct.
 
 I use it as the semantics oracle in [filo](https://github.com/crgimenes/filo)'s
-conformance tests. Filo's evaluation rules are written as Prolog relations — an
-executable spec — and thousands of expressions get evaluated on both sides and
+conformance tests. Filo's evaluation rules are written as Prolog relations, an
+executable spec. Thousands of expressions get evaluated on both sides and
 compared. That job set the priorities here: get the arithmetic and term
 machinery right, and never let an untrusted program take down the host.
 
@@ -102,7 +102,7 @@ if err := sols.Err(); err != nil {
 
 Two behaviors worth knowing before you rely on them. `Scan` does not convert
 between Integer and Float: a Prolog integer won't fill a `float64` field, and a
-float won't fill an `int64`. And `mod` is floored while `rem` is truncated —
+float won't fill an `int64`. And `mod` is floored while `rem` is truncated;
 `rem` matches Go's `math.Mod`.
 
 ## Examples
