@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"testing"
 	"unicode/utf8"
@@ -3689,6 +3690,7 @@ func TestOpen(t *testing.T) {
 	t.Run("the source/sink specified by sourceSink does not exist", func(t *testing.T) {
 		f, err := os.CreateTemp("", "open_test_existence")
 		noError(t, err)
+		noError(t, f.Close())
 		noError(t, os.Remove(f.Name()))
 
 		var vm VM
@@ -3698,9 +3700,17 @@ func TestOpen(t *testing.T) {
 	})
 
 	t.Run("the source/sink specified by sourceSink cannot be opened", func(t *testing.T) {
+		if runtime.GOOS == "windows" {
+			// Windows file permissions don't map to chmod bits, and CI runs
+			// elevated, so a write-only file is still readable here. There's no
+			// portable way to make open fail with a permission error.
+			t.Skip("chmod-based permission denial is not reproducible on Windows")
+		}
+
 		f, err := os.CreateTemp("", "open_test_permission")
 		noError(t, err)
 		defer func() {
+			noError(t, f.Close())
 			noError(t, os.Remove(f.Name()))
 		}()
 
@@ -3715,6 +3725,7 @@ func TestOpen(t *testing.T) {
 	t.Run("an element E of the options list is alias and A is already associated with an open stream", func(t *testing.T) {
 		f, err := os.CreateTemp("", "open_test_dup_alias")
 		noError(t, err)
+		noError(t, f.Close())
 		defer func() {
 			noError(t, os.Remove(f.Name()))
 		}()
@@ -3914,6 +3925,8 @@ func TestFlushOutput(t *testing.T) {
 	f, err := os.CreateTemp("", "")
 	noError(t, err)
 	defer func() {
+		// Close before removing: Windows won't delete a file with an open handle.
+		noError(t, f.Close())
 		noError(t, os.Remove(f.Name()))
 	}()
 
