@@ -40,10 +40,8 @@ type binding struct {
 }
 
 var rootEnv = &Env{
-	binding: binding{
-		key:   newEnvKey(varContext),
-		value: rootContext,
-	},
+	key:   newEnvKey(varContext),
+	value: rootContext,
 }
 
 // NewEnv creates an empty environment.
@@ -89,7 +87,7 @@ func (e *Env) bind(v Variable, t Term) *Env {
 
 func (e *Env) insert(k envKey, v Term) *Env {
 	if e == nil {
-		return &Env{color: red, binding: binding{key: k, value: v}}
+		return &Env{color: red, key: k, value: v}
 	}
 	switch {
 	case k < e.key:

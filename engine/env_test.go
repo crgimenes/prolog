@@ -13,15 +13,11 @@ func TestEnv_Bind(t *testing.T) {
 	equal(t, &Env{
 		color: black,
 		left: &Env{
-			binding: binding{
-				key:   newEnvKey(a),
-				value: NewAtom("a"),
-			},
+			key:   newEnvKey(a),
+			value: NewAtom("a"),
 		},
-		binding: binding{
-			key:   newEnvKey(varContext),
-			value: NewAtom("root"),
-		},
+		key:   newEnvKey(varContext),
+		value: NewAtom("root"),
 	}, env.bind(a, NewAtom("a")))
 }
 

@@ -67,8 +67,7 @@ type Number interface {
 
 func eval(expression Term, env *Env) (_ Number, err error) {
 	defer func() {
-		var ev exceptionalValue
-		if errors.As(err, &ev) {
+		if ev, ok := errors.AsType[exceptionalValue](err); ok {
 			err = evaluationError(ev, env)
 		}
 	}()

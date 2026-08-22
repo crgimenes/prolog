@@ -2901,8 +2901,7 @@ func Succ(vm *VM, x, s Term, k Cont, env *Env) *Promise {
 
 		r, err := add(x, Integer(1))
 		if err != nil {
-			var ev exceptionalValue
-			if errors.As(err, &ev) {
+			if ev, ok := errors.AsType[exceptionalValue](err); ok {
 				return Error(evaluationError(ev, env))
 			}
 			return Error(err)

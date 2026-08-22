@@ -3,6 +3,7 @@ package engine
 import (
 	"fmt"
 	"io"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -488,8 +489,8 @@ func slice(list Term, env *Env) ([]Term, error) {
 // seq returns a sequence of ts separated by sep.
 func seq(sep Atom, ts ...Term) Term {
 	s, ts := ts[len(ts)-1], ts[:len(ts)-1]
-	for i := len(ts) - 1; i >= 0; i-- {
-		s = sep.Apply(ts[i], s)
+	for _, t := range slices.Backward(ts) {
+		s = sep.Apply(t, s)
 	}
 	return s
 }
