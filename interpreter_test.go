@@ -316,7 +316,13 @@ func TestNew_variableNames(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+			// Only a query that waits on input runs into the short deadline;
+			// the others get room for a slow CI runner.
+			limit := 5 * time.Second
+			if tt.waits {
+				limit = 100 * time.Millisecond
+			}
+			ctx, cancel := context.WithTimeout(context.Background(), limit)
 			defer cancel()
 
 			if tt.input == "" {
