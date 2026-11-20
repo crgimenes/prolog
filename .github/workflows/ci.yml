@@ -51,4 +51,4 @@ jobs:
       # Short smoke fuzz on the parser/compiler pipeline — the most exposed
       # surface for untrusted input. Bounded so the job can't hang.
       - name: Fuzz Exec
-        run: go test -run '^$' -fuzz '^FuzzExecDoesNotPanic$' -fuzztime 60s .
+        run: go test -run '^$' -fuzz '^FuzzExecDoesNotPanic$' -fuzztime 60s ./core
